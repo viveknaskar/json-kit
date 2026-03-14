@@ -1,0 +1,459 @@
+/* ============================================
+   TOOLS.CSS — Tool views, editors, diff, output
+   ============================================ */
+
+/* ---- Tool View Shell ---- */
+.tool-view {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  animation: fadeIn 0.25s ease;
+}
+
+.tool-view.active {
+  display: flex;
+}
+
+/* ---- Tool Header ---- */
+.tool-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.back-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+  background: var(--bg-tertiary);
+}
+
+.tool-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.tool-title-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.tool-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.tool-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.1rem;
+}
+
+.tool-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+/* ---- Two-column editor layout ---- */
+.editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-layout.single-col {
+  grid-template-columns: 1fr;
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-height: 500px;
+}
+
+.editor-pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  gap: 0.5rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.pane-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.pane-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.editor-pane-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.editor-pane-body textarea {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.875rem 1rem;
+  resize: none;
+  font-size: 13px;
+  line-height: 1.65;
+  min-height: 400px;
+  width: 100%;
+}
+
+.editor-pane-body textarea:focus {
+  box-shadow: none;
+  border: none;
+}
+
+/* ---- Output Area ---- */
+.output-area {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-height: 400px;
+}
+
+.output-area.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-style: italic;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ---- Action Bar ---- */
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+  flex-wrap: wrap;
+}
+
+.stats-bar {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.stats-bar span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ---- Status Message ---- */
+.status-message {
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+}
+
+.status-message.show {
+  display: flex;
+}
+
+.status-message.success {
+  color: var(--success);
+  background: rgba(34,197,94,0.05);
+}
+
+.status-message.error {
+  color: var(--error);
+  background: rgba(239,68,68,0.05);
+}
+
+.status-message.info {
+  color: var(--accent);
+  background: rgba(59,130,246,0.05);
+}
+
+/* ---- Diff Output ---- */
+.diff-output {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  overflow: auto;
+  padding: 0.875rem 1rem;
+  min-height: 400px;
+}
+
+.diff-line {
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  margin-bottom: 0.15rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.diff-added {
+  background: rgba(34,197,94,0.1);
+  color: #4ade80;
+  border-left: 2px solid #22c55e;
+  padding-left: 0.6rem;
+}
+
+.diff-removed {
+  background: rgba(239,68,68,0.1);
+  color: #f87171;
+  border-left: 2px solid #ef4444;
+  padding-left: 0.6rem;
+}
+
+.diff-changed {
+  background: rgba(245,158,11,0.1);
+  color: #fbbf24;
+  border-left: 2px solid #f59e0b;
+  padding-left: 0.6rem;
+}
+
+.diff-unchanged {
+  color: var(--text-muted);
+}
+
+.diff-path {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+.diff-summary {
+  display: flex;
+  gap: 1rem;
+  padding: 0.625rem 0.875rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+  font-size: 0.78rem;
+}
+
+.diff-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.diff-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ---- Schema Validation ---- */
+.schema-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 1rem;
+}
+
+.validation-result {
+  padding: 0.875rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  overflow: auto;
+  min-height: 120px;
+}
+
+.validation-valid {
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.validation-errors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.validation-error-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--error);
+  font-size: 0.82rem;
+  padding: 0.375rem 0.5rem;
+  background: rgba(239,68,68,0.07);
+  border-radius: 4px;
+  border-left: 2px solid var(--error);
+}
+
+.error-path {
+  color: var(--warning);
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+/* ---- Query tool ---- */
+.query-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.query-input {
+  flex: 1;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.75rem;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.query-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+
+/* ---- Indent selector ---- */
+.indent-opts {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.indent-opts .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+}
+
+.indent-opts .btn-sm.active {
+  background: rgba(59,130,246,0.15);
+  color: var(--accent);
+  border-color: rgba(59,130,246,0.3);
+}
+
+/* ---- Separator option ---- */
+.separator-group {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .schema-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-view {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .tool-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tool-header-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .editor-pane-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pane-actions {
+    width: 100%;
+  }
+}

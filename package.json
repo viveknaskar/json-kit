@@ -1,0 +1,19 @@
+{
+  "name": "json-kit",
+  "version": "1.0.0",
+  "description": "Free browser-based JSON tools — format, convert, diff, query and more",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && npx gh-pages -d dist",
+    "test": "vitest run --config vitest.config.js",
+    "test:watch": "vitest --config vitest.config.js"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.0.0",
+    "happy-dom": "^20.8.4",
+    "vite": "^8.0.0",
+    "vitest": "^4.1.0"
+  }
+}

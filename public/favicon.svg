@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="12" fill="#0a0a0a"/>
+  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="JetBrains Mono, Fira Code, monospace"
+        font-size="28" font-weight="700" fill="#3b82f6">{}</text>
+</svg>
