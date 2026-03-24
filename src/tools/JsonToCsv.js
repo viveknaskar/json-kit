@@ -92,7 +92,7 @@ export function jsonToCsv(arr) {
   const headersSet = new Set()
   const flatRows = arr.map(row => flattenOne(row))
   flatRows.forEach(row => Object.keys(row).forEach(k => headersSet.add(k)))
-  const headers = Array.from(headersSet)
+  const headers = Array.from(headersSet).sort()
 
   const lines = [headers.map(csvCell).join(',')]
   for (const row of flatRows) {

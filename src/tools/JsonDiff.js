@@ -2,7 +2,7 @@
    JsonDiff.js — Compare two JSON objects
    ============================================ */
 
-import { copyToClipboard } from '../core/Utils.js'
+import { copyToClipboard, escapeHtml as escHtml } from '../core/Utils.js'
 
 export function init() {
   const inputA  = document.getElementById('diff-a')
@@ -180,9 +180,3 @@ function jsonType(val) {
   return 'primitive'
 }
 
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}

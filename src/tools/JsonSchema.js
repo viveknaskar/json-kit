@@ -2,6 +2,8 @@
    JsonSchema.js — Validate JSON against JSON Schema
    ============================================ */
 
+import { escapeHtml as escHtml } from '../core/Utils.js'
+
 export function init() {
   const dataEl   = document.getElementById('schema-data')
   const schemaEl = document.getElementById('schema-schema')
@@ -114,8 +116,14 @@ export function validate(data, schema, path = '$') {
       errors.push({ path, message: `String length (${data.length}) must be <= ${schema.maxLength}` })
     }
     if (schema.pattern !== undefined) {
-      const re = new RegExp(schema.pattern)
-      if (!re.test(data)) {
+      let re
+      try {
+        re = new RegExp(schema.pattern)
+      } catch {
+        errors.push({ path, message: `Invalid regex pattern: /${schema.pattern}/` })
+        re = null
+      }
+      if (re && !re.test(data)) {
         errors.push({ path, message: `String must match pattern /${schema.pattern}/` })
       }
     }
@@ -321,9 +329,3 @@ function hasUniqueItems(arr) {
   return true
 }
 
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}
