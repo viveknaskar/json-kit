@@ -1104,4 +1104,405 @@ describe('jsonToYaml', () => {
     const restored = parseYaml(yaml)
     expect(restored).toEqual(original)
   })
+
+  it('serializes object with null value', () => {
+    const result = jsonToYaml({ a: null })
+    expect(result).toContain('a: null')
+  })
+
+  it('serializes array of booleans and null', () => {
+    const result = jsonToYaml([true, false, null])
+    expect(result).toContain('- true')
+    expect(result).toContain('- false')
+    expect(result).toContain('- null')
+  })
+
+  it('quotes object keys that contain spaces', () => {
+    const result = jsonToYaml({ 'hello world': 1 })
+    expect(result).toContain("'hello world'")
+  })
+
+  it('quotes object keys that contain colon', () => {
+    const result = jsonToYaml({ 'a:b': 1 })
+    expect(result).toContain("'a:b'")
+  })
+
+  it('serializes array of objects', () => {
+    const result = jsonToYaml([{ name: 'Alice' }, { name: 'Bob' }])
+    expect(result).toContain('name: Alice')
+    expect(result).toContain('name: Bob')
+  })
+
+  it('round-trips array of scalars through parseYaml', () => {
+    const original = [1, 'hello', true, null]
+    const yaml = jsonToYaml(original)
+    const restored = parseYaml(yaml)
+    expect(restored).toEqual(original)
+  })
+})
+
+/* ===========================
+   jsonToCsv — additional edge cases
+   =========================== */
+describe('jsonToCsv — edge cases', () => {
+  it('serializes boolean cell values', () => {
+    const csv = jsonToCsv([{ active: true, deleted: false }])
+    const rows = csv.split('\r\n')
+    // sorted headers: active, deleted → values: true, false
+    expect(rows[0]).toBe('active,deleted')
+    expect(rows[1]).toBe('true,false')
+  })
+
+  it('serializes array cell values as JSON (CSV-escaped)', () => {
+    const csv = jsonToCsv([{ tags: ['a', 'b'] }])
+    expect(csv).toContain('tags')
+    // JSON.stringify produces ["a","b"]; csvCell wraps in quotes and doubles internal quotes
+    expect(csv).toContain('[""a"",""b""]')
+  })
+
+  it('quotes cell values containing newlines', () => {
+    const csv = jsonToCsv([{ notes: 'line1\nline2' }])
+    expect(csv).toContain('"line1\nline2"')
+  })
+
+  it('quotes cell values with leading/trailing whitespace', () => {
+    const csv = jsonToCsv([{ name: ' Alice ' }])
+    expect(csv).toContain('" Alice "')
+  })
+
+  it('handles numeric cell values', () => {
+    const csv = jsonToCsv([{ score: 0, count: -5, ratio: 3.14 }])
+    const dataRow = csv.split('\r\n')[1]
+    expect(dataRow).toContain('0')
+    expect(dataRow).toContain('-5')
+    expect(dataRow).toContain('3.14')
+  })
+
+  it('produces correct row count for multiple records', () => {
+    const data = Array.from({ length: 5 }, (_, i) => ({ id: i }))
+    const rows = jsonToCsv(data).split('\r\n')
+    expect(rows.length).toBe(6) // 1 header + 5 data rows
+  })
+})
+
+/* ===========================
+   csvToJson — additional edge cases
+   =========================== */
+describe('csvToJson — edge cases', () => {
+  it('returns empty array for header-only CSV', () => {
+    const result = csvToJson('a,b,c')
+    expect(result).toEqual([])
+  })
+
+  it('coerces "null" string to null', () => {
+    const result = csvToJson('val\nnull')
+    expect(result[0].val).toBeNull()
+  })
+
+  it('coerces "NULL" to null', () => {
+    const result = csvToJson('val\nNULL')
+    expect(result[0].val).toBeNull()
+  })
+
+  it('skips blank data rows', () => {
+    const result = csvToJson('a\n1\n\n2')
+    expect(result).toHaveLength(2)
+  })
+
+  it('handles quoted field with embedded newline', () => {
+    const result = csvToJson('notes\n"line1\nline2"')
+    expect(result[0].notes).toBe('line1\nline2')
+  })
+
+  it('handles quoted field with embedded double-quote', () => {
+    const result = csvToJson('note\n"say ""hi"""')
+    expect(result[0].note).toBe('say "hi"')
+  })
+
+  it('coerces float strings', () => {
+    const result = csvToJson('x\n3.14')
+    expect(result[0].x).toBeCloseTo(3.14)
+  })
+})
+
+/* ===========================
+   computeDiff — additional edge cases
+   =========================== */
+describe('computeDiff — edge cases', () => {
+  it('detects change between two root primitives', () => {
+    const diffs = []
+    computeDiff(1, 2, 'root', diffs)
+    expect(diffs).toHaveLength(1)
+    expect(diffs[0].type).toBe('changed')
+  })
+
+  it('returns empty for two identical null values', () => {
+    const diffs = []
+    computeDiff(null, null, '', diffs)
+    expect(diffs).toHaveLength(0)
+  })
+
+  it('detects change from null to object', () => {
+    const diffs = []
+    computeDiff(null, { a: 1 }, 'x', diffs)
+    expect(diffs[0].type).toBe('changed')
+  })
+
+  it('detects change from primitive to null', () => {
+    const diffs = []
+    computeDiff({ a: 1 }, { a: null }, '', diffs)
+    expect(diffs.some(d => d.path === 'a' && d.type === 'changed')).toBe(true)
+  })
+
+  it('handles deeply nested array element changes', () => {
+    const diffs = []
+    computeDiff({ a: [1, [2, 3]] }, { a: [1, [2, 9]] }, '', diffs)
+    expect(diffs.some(d => d.type === 'changed')).toBe(true)
+  })
+
+  it('reports no diff for equal nested arrays', () => {
+    const diffs = []
+    computeDiff({ a: [1, 2, 3] }, { a: [1, 2, 3] }, '', diffs)
+    expect(diffs).toHaveLength(0)
+  })
+
+  it('correctly records b value for added key', () => {
+    const diffs = []
+    computeDiff({}, { x: 42 }, '', diffs)
+    expect(diffs[0].b).toBe(42)
+  })
+
+  it('correctly records a value for removed key', () => {
+    const diffs = []
+    computeDiff({ x: 42 }, {}, '', diffs)
+    expect(diffs[0].a).toBe(42)
+  })
+})
+
+/* ===========================
+   validate — additional edge cases
+   =========================== */
+describe('validate — additional edge cases', () => {
+  it('rejects float for integer type', () => {
+    expect(validate(1.5, { type: 'integer' }).length).toBeGreaterThan(0)
+  })
+
+  it('accepts whole float (1.0) as integer', () => {
+    expect(validate(1.0, { type: 'integer' })).toHaveLength(0)
+  })
+
+  it('validates null type', () => {
+    expect(validate(null, { type: 'null' })).toHaveLength(0)
+    expect(validate(0, { type: 'null' }).length).toBeGreaterThan(0)
+  })
+
+  it('validates boolean type', () => {
+    expect(validate(true, { type: 'boolean' })).toHaveLength(0)
+    expect(validate(false, { type: 'boolean' })).toHaveLength(0)
+    expect(validate(1, { type: 'boolean' }).length).toBeGreaterThan(0)
+  })
+
+  it('validates array type', () => {
+    expect(validate([], { type: 'array' })).toHaveLength(0)
+    expect(validate({}, { type: 'array' }).length).toBeGreaterThan(0)
+  })
+
+  it('validates object type', () => {
+    expect(validate({}, { type: 'object' })).toHaveLength(0)
+    expect(validate([], { type: 'object' }).length).toBeGreaterThan(0)
+  })
+
+  it('empty schema allows any value', () => {
+    expect(validate(42, {})).toHaveLength(0)
+    expect(validate(null, {})).toHaveLength(0)
+    expect(validate([1, 2], {})).toHaveLength(0)
+  })
+
+  it('properties without required does not error on missing keys', () => {
+    const schema = { type: 'object', properties: { name: { type: 'string' } } }
+    expect(validate({}, schema)).toHaveLength(0)
+  })
+
+  it('validates multiple missing required properties', () => {
+    const schema = { type: 'object', required: ['a', 'b', 'c'] }
+    const errors = validate({}, schema)
+    expect(errors).toHaveLength(3)
+  })
+
+  it('additionalProperties without properties defined allows all keys', () => {
+    // additionalProperties only activates when schema.properties is also defined
+    const schema = { additionalProperties: false }
+    expect(validate({ a: 1 }, schema)).toHaveLength(0)
+  })
+
+  it('validates deeply nested properties', () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        user: {
+          type: 'object',
+          properties: {
+            age: { type: 'number', minimum: 0 }
+          }
+        }
+      }
+    }
+    expect(validate({ user: { age: 25 } }, schema)).toHaveLength(0)
+    expect(validate({ user: { age: -1 } }, schema).length).toBeGreaterThan(0)
+  })
+})
+
+/* ===========================
+   flattenJson — additional edge cases
+   =========================== */
+describe('flattenJson — additional edge cases', () => {
+  it('preserves boolean false', () => {
+    expect(flattenJson({ a: false })).toEqual({ a: false })
+  })
+
+  it('preserves number zero', () => {
+    expect(flattenJson({ a: 0 })).toEqual({ a: 0 })
+  })
+
+  it('preserves negative numbers', () => {
+    expect(flattenJson({ a: -42 })).toEqual({ a: -42 })
+  })
+
+  it('handles deeply nested array with mixed leaf types', () => {
+    const result = flattenJson({ data: [true, null, 'str'] })
+    expect(result['data[0]']).toBe(true)
+    expect(result['data[1]']).toBeNull()
+    expect(result['data[2]']).toBe('str')
+  })
+
+  it('does not mutate the input object', () => {
+    const input = { a: { b: 1 } }
+    flattenJson(input)
+    expect(input).toEqual({ a: { b: 1 } })
+  })
+
+  it('handles multiple sibling objects', () => {
+    const result = flattenJson({ a: { x: 1 }, b: { y: 2 } })
+    expect(result['a.x']).toBe(1)
+    expect(result['b.y']).toBe(2)
+  })
+})
+
+/* ===========================
+   unflattenJson — additional edge cases
+   =========================== */
+describe('unflattenJson — additional edge cases', () => {
+  it('handles 2D array bracket notation', () => {
+    const result = unflattenJson({
+      'matrix[0][0]': 1, 'matrix[0][1]': 2,
+      'matrix[1][0]': 3, 'matrix[1][1]': 4
+    })
+    expect(result.matrix[0][0]).toBe(1)
+    expect(result.matrix[0][1]).toBe(2)
+    expect(result.matrix[1][0]).toBe(3)
+    expect(result.matrix[1][1]).toBe(4)
+  })
+
+  it('returns empty object for empty input', () => {
+    expect(unflattenJson({})).toEqual({})
+  })
+
+  it('handles single top-level key', () => {
+    expect(unflattenJson({ a: 1 })).toEqual({ a: 1 })
+  })
+
+  it('handles boolean and null values', () => {
+    const result = unflattenJson({ 'a.b': false, 'a.c': null })
+    expect(result.a.b).toBe(false)
+    expect(result.a.c).toBeNull()
+  })
+
+  it('round-trips deep nesting with arrays', () => {
+    const original = { users: [{ name: 'Alice', tags: ['admin'] }] }
+    const flat = flattenJson(original)
+    const restored = unflattenJson(flat)
+    expect(restored).toEqual(original)
+  })
+})
+
+/* ===========================
+   queryJson — additional edge cases
+   =========================== */
+describe('queryJson — additional edge cases', () => {
+  it('accesses index on a top-level array', () => {
+    expect(queryJson([10, 20, 30], '[1]')).toBe(20)
+  })
+
+  it('auto-iterates array when accessing a key', () => {
+    const data = [{ a: 1 }, { a: 2 }, { a: 3 }]
+    const result = queryJson(data, 'a')
+    expect(result).toEqual([1, 2, 3])
+  })
+
+  it('handles wildcard on nested array', () => {
+    const data = { groups: [{ members: [{ id: 1 }, { id: 2 }] }] }
+    const result = queryJson(data, 'groups[0].members[*].id')
+    expect(result).toEqual([1, 2])
+  })
+
+  it('returns single value (not array) for non-wildcard path', () => {
+    const data = { a: { b: 42 } }
+    const result = queryJson(data, 'a.b')
+    expect(result).toBe(42)
+    expect(Array.isArray(result)).toBe(false)
+  })
+
+  it('throws on wildcard applied to non-array', () => {
+    expect(() => queryJson({ a: 1 }, 'a[*]')).toThrow()
+  })
+
+  it('throws on indexing a non-array', () => {
+    expect(() => queryJson({ a: 1 }, 'a[0]')).toThrow()
+  })
+})
+
+/* ===========================
+   parseYaml — additional edge cases
+   =========================== */
+describe('parseYaml — additional edge cases', () => {
+  it('parses mixed-type sequence', () => {
+    const result = parseYaml('- 1\n- hello\n- true\n- null')
+    expect(result).toEqual([1, 'hello', true, null])
+  })
+
+  it('parses boolean values in mapping', () => {
+    const result = parseYaml('active: true\ndeleted: false')
+    expect(result.active).toBe(true)
+    expect(result.deleted).toBe(false)
+  })
+
+  it('parses numeric values in mapping', () => {
+    const result = parseYaml('count: 0\nnegative: -5\npi: 3.14')
+    expect(result.count).toBe(0)
+    expect(result.negative).toBe(-5)
+    expect(result.pi).toBeCloseTo(3.14)
+  })
+
+  it('handles multiple top-level keys with mixed types', () => {
+    const result = parseYaml('name: Alice\nage: 30\nactive: true\nscore: 9.5')
+    expect(result.name).toBe('Alice')
+    expect(result.age).toBe(30)
+    expect(result.active).toBe(true)
+    expect(result.score).toBeCloseTo(9.5)
+  })
+
+  it('parses sequence of numbers', () => {
+    expect(parseYaml('- 10\n- 20\n- 30')).toEqual([10, 20, 30])
+  })
+
+  it('parses mapping nested inside a sequence item', () => {
+    const yaml = '- key: val\n  num: 1'
+    const result = parseYaml(yaml)
+    expect(result[0]).toEqual({ key: 'val', num: 1 })
+  })
+
+  it('handles double-quoted string values', () => {
+    const result = parseYaml('msg: "hello world"')
+    expect(result.msg).toBe('hello world')
+  })
 })
