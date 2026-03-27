@@ -25,6 +25,8 @@ import { init as initFlattenJson   } from './tools/FlattenJson.js'
 import { init as initUnflattenJson } from './tools/UnflattenJson.js'
 import { init as initJsonQuery     } from './tools/JsonQuery.js'
 import { init as initRepairJson   } from './tools/RepairJson.js'
+import { init as initEscapeJson   } from './tools/EscapeJson.js'
+import { init as initJsonMerge    } from './tools/JsonMerge.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // Boot the SPA shell
@@ -44,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initUnflattenJson()
   initJsonQuery()
   initRepairJson()
+  initJsonMerge()
 
   // Restore view from URL hash (e.g. direct link to a tool)
   app.restoreFromHash()

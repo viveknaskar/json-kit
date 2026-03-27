@@ -8,12 +8,14 @@ const tools = [
   { id: 'minify-json',    name: 'Minify JSON',         desc: 'Compress JSON by removing all whitespace',                icon: '⊟', accent: '#8b5cf6', category: 'essentials' },
   { id: 'sort-keys',      name: 'Sort Keys',           desc: 'Sort all JSON object keys alphabetically',                icon: '⇅', accent: '#06b6d4', category: 'essentials' },
   { id: 'repair-json',    name: 'Repair JSON',         desc: 'Fix trailing commas, single quotes, unquoted keys and comments', icon: '⚙', accent: '#f43f5e', category: 'essentials' },
+  { id: 'escape-json',    name: 'Escape / Unescape',   desc: 'Escape a string for use inside JSON, or unescape it back',        icon: '⇔', accent: '#0ea5e9', category: 'essentials' },
   // Convert
   { id: 'json-to-csv',    name: 'JSON to CSV',         desc: 'Convert JSON arrays to CSV spreadsheet format',           icon: '⇢', accent: '#10b981', category: 'convert'   },
   { id: 'csv-to-json',    name: 'CSV to JSON',         desc: 'Convert CSV data to a JSON array',                        icon: '⇠', accent: '#f59e0b', category: 'convert'   },
   { id: 'json-to-yaml',   name: 'JSON to YAML',        desc: 'Convert JSON to human-readable YAML format',              icon: '⟿', accent: '#ef4444', category: 'convert'   },
   { id: 'yaml-to-json',   name: 'YAML to JSON',        desc: 'Convert YAML configuration back to JSON',                 icon: '⟻', accent: '#ec4899', category: 'convert'   },
   // Analyze & Transform
+  { id: 'json-merge',     name: 'JSON Merge',          desc: 'Deep merge two JSON objects, with B values taking precedence', icon: '⊞', accent: '#6366f1', category: 'transform' },
   { id: 'json-diff',      name: 'JSON Diff',           desc: 'Compare two JSON objects and highlight differences',      icon: '⊕', accent: '#f97316', category: 'transform' },
   { id: 'json-schema',    name: 'Schema Validator',    desc: 'Validate JSON against a JSON Schema definition',          icon: '✓', accent: '#84cc16', category: 'transform' },
   { id: 'flatten-json',   name: 'Flatten JSON',        desc: 'Flatten nested objects to dot-notation keys',             icon: '⬇', accent: '#14b8a6', category: 'transform' },
@@ -74,7 +76,7 @@ export default class App {
             <span>Browser-based · Zero uploads</span>
           </div>
           <h1 class="hero-title">JSON <span>Kit</span></h1>
-          <p class="hero-tagline">13 free JSON tools in your browser — format, convert, diff, query and more. Your data never leaves your device.</p>
+          <p class="hero-tagline">15 free JSON tools in your browser — format, convert, diff, query and more. Your data never leaves your device.</p>
           <div class="hero-props">
             <div class="hero-prop">
               <div class="hero-prop-icon">🔒</div>
@@ -187,12 +189,14 @@ export default class App {
       ${this.csvToJsonViewHTML()}
       ${this.jsonToYamlViewHTML()}
       ${this.yamlToJsonViewHTML()}
+      ${this.jsonMergeViewHTML()}
       ${this.jsonDiffViewHTML()}
       ${this.jsonSchemaViewHTML()}
       ${this.flattenJsonViewHTML()}
       ${this.unflattenJsonViewHTML()}
       ${this.jsonQueryViewHTML()}
       ${this.repairJsonViewHTML()}
+      ${this.escapeJsonViewHTML()}
     `
   }
 
@@ -485,6 +489,60 @@ export default class App {
     `
   }
 
+  jsonMergeViewHTML() {
+    const t = tools.find(x => x.id === 'json-merge')
+    return `
+      <div id="view-json-merge" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">JSON A (base)</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="merge-clear">Clear both</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="merge-a" class="code-area" placeholder='{"name":"Alice","role":"admin","settings":{"theme":"dark"}}' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">JSON B (overrides)</span>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="merge-b" class="code-area" placeholder='{"role":"user","settings":{"lang":"en"},"email":"alice@example.com"}' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="editor-pane" style="margin-top:1rem;min-height:260px;">
+          <div class="editor-pane-header">
+            <span class="pane-label">Merged Output</span>
+            <div class="pane-actions">
+              <select id="merge-strategy" class="btn btn-ghost btn-sm" style="cursor:pointer;">
+                <option value="deep">Deep merge</option>
+                <option value="shallow">Shallow merge</option>
+              </select>
+              <select id="merge-arrays" class="btn btn-ghost btn-sm" style="cursor:pointer;">
+                <option value="replace">Arrays: replace</option>
+                <option value="concat">Arrays: concat</option>
+              </select>
+              <button class="btn btn-primary btn-sm" id="merge-btn">Merge</button>
+              <button class="btn btn-secondary btn-sm" id="merge-copy">Copy</button>
+              <button class="btn btn-secondary btn-sm" id="merge-download">Download</button>
+            </div>
+          </div>
+          <div class="editor-pane-body">
+            <div id="merge-output" class="output-area empty">Merged JSON will appear here…</div>
+          </div>
+          <div class="status-message" id="merge-status"></div>
+        </div>
+      </div>
+    `
+  }
+
   jsonDiffViewHTML() {
     const t = tools.find(x => x.id === 'json-diff')
     return `
@@ -715,6 +773,47 @@ export default class App {
               <div id="query-output" class="output-area empty">Query result will appear here…</div>
             </div>
             <div class="status-message" id="query-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  escapeJsonViewHTML() {
+    const t = tools.find(x => x.id === 'escape-json')
+    return `
+      <div id="view-escape-json" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Input</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="escape-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="escape-input" class="code-area" placeholder='Paste raw text to escape, or an escaped JSON string to unescape…' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="escape-btn">Escape →</button>
+              <button class="btn btn-secondary" id="unescape-btn">← Unescape</button>
+              <div class="stats-bar" id="escape-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Output</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="escape-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="escape-download">Download</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="escape-output" class="output-area empty">Result will appear here…</div>
+            </div>
+            <div class="status-message" id="escape-status"></div>
           </div>
         </div>
       </div>
