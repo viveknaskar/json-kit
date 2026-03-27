@@ -7,6 +7,7 @@ const tools = [
   { id: 'format-json',    name: 'Format & Validate',  desc: 'Prettify JSON and detect errors with line numbers',       icon: '✦', accent: '#3b82f6', category: 'essentials' },
   { id: 'minify-json',    name: 'Minify JSON',         desc: 'Compress JSON by removing all whitespace',                icon: '⊟', accent: '#8b5cf6', category: 'essentials' },
   { id: 'sort-keys',      name: 'Sort Keys',           desc: 'Sort all JSON object keys alphabetically',                icon: '⇅', accent: '#06b6d4', category: 'essentials' },
+  { id: 'repair-json',    name: 'Repair JSON',         desc: 'Fix trailing commas, single quotes, unquoted keys and comments', icon: '⚙', accent: '#f43f5e', category: 'essentials' },
   // Convert
   { id: 'json-to-csv',    name: 'JSON to CSV',         desc: 'Convert JSON arrays to CSV spreadsheet format',           icon: '⇢', accent: '#10b981', category: 'convert'   },
   { id: 'csv-to-json',    name: 'CSV to JSON',         desc: 'Convert CSV data to a JSON array',                        icon: '⇠', accent: '#f59e0b', category: 'convert'   },
@@ -73,7 +74,7 @@ export default class App {
             <span>Browser-based · Zero uploads</span>
           </div>
           <h1 class="hero-title">JSON <span>Kit</span></h1>
-          <p class="hero-tagline">12 free JSON tools in your browser — format, convert, diff, query and more. Your data never leaves your device.</p>
+          <p class="hero-tagline">13 free JSON tools in your browser — format, convert, diff, query and more. Your data never leaves your device.</p>
           <div class="hero-props">
             <div class="hero-prop">
               <div class="hero-prop-icon">🔒</div>
@@ -191,6 +192,7 @@ export default class App {
       ${this.flattenJsonViewHTML()}
       ${this.unflattenJsonViewHTML()}
       ${this.jsonQueryViewHTML()}
+      ${this.repairJsonViewHTML()}
     `
   }
 
@@ -713,6 +715,46 @@ export default class App {
               <div id="query-output" class="output-area empty">Query result will appear here…</div>
             </div>
             <div class="status-message" id="query-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  repairJsonViewHTML() {
+    const t = tools.find(x => x.id === 'repair-json')
+    return `
+      <div id="view-repair-json" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Broken JSON</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="repair-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="repair-input" class="code-area" placeholder="Paste broken JSON here…\n\n// trailing commas, single quotes, unquoted keys\n{name: 'Alice', scores: [10, 20,],}" spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="repair-btn">Repair JSON</button>
+              <div class="stats-bar" id="repair-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Repaired Output</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="repair-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="repair-download">Download</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="repair-output" class="output-area empty">Repaired JSON will appear here…</div>
+            </div>
+            <div class="status-message" id="repair-status"></div>
           </div>
         </div>
       </div>

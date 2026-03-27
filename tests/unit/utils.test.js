@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { repairJson } from '../../src/tools/RepairJson.js'
 import { countStats, formatBytes, escapeHtml, safeParseJson, prettyJson, extractErrorPosition } from '../../src/core/Utils.js'
 import { sortKeys } from '../../src/tools/SortKeys.js'
 import { flattenJson } from '../../src/tools/FlattenJson.js'
@@ -1504,5 +1505,107 @@ describe('parseYaml — additional edge cases', () => {
   it('handles double-quoted string values', () => {
     const result = parseYaml('msg: "hello world"')
     expect(result.msg).toBe('hello world')
+  })
+})
+
+/* ===========================
+   repairJson
+   =========================== */
+describe('repairJson', () => {
+  // --- already valid ---
+  it('returns unchanged text for already-valid JSON', () => {
+    const { text, fixes } = repairJson('{"a":1}')
+    expect(JSON.parse(text)).toEqual({ a: 1 })
+    expect(fixes).toHaveLength(0)
+  })
+
+  // --- trailing commas ---
+  it('removes trailing comma in object', () => {
+    const { text, fixes } = repairJson('{"a":1,"b":2,}')
+    expect(JSON.parse(text)).toEqual({ a: 1, b: 2 })
+    expect(fixes).toContain('removed trailing commas')
+  })
+
+  it('removes trailing comma in array', () => {
+    const { text, fixes } = repairJson('[1, 2, 3,]')
+    expect(JSON.parse(text)).toEqual([1, 2, 3])
+    expect(fixes).toContain('removed trailing commas')
+  })
+
+  it('removes trailing comma in nested structure', () => {
+    const { text } = repairJson('{"a":[1,2,],"b":{"c":3,}}')
+    expect(JSON.parse(text)).toEqual({ a: [1, 2], b: { c: 3 } })
+  })
+
+  // --- single quotes ---
+  it('converts single-quoted string values', () => {
+    const { text, fixes } = repairJson("{'key':'value'}")
+    expect(JSON.parse(text)).toEqual({ key: 'value' })
+    expect(fixes).toContain('converted single quotes to double quotes')
+  })
+
+  it('converts single-quoted strings with internal double quotes', () => {
+    const { text } = repairJson(`{'msg':'say "hi"'}`)
+    const parsed = JSON.parse(text)
+    expect(parsed.msg).toBe('say "hi"')
+  })
+
+  it('handles escaped single quotes inside single-quoted strings', () => {
+    const { text } = repairJson(`{'msg':'it\\'s fine'}`)
+    const parsed = JSON.parse(text)
+    expect(parsed.msg).toBe("it's fine")
+  })
+
+  // --- unquoted keys ---
+  it('quotes unquoted object keys', () => {
+    const { text, fixes } = repairJson('{name: "Alice"}')
+    expect(JSON.parse(text)).toEqual({ name: 'Alice' })
+    expect(fixes).toContain('quoted unquoted keys')
+  })
+
+  it('quotes multiple unquoted keys', () => {
+    const { text } = repairJson('{name: "Alice", age: 30}')
+    expect(JSON.parse(text)).toEqual({ name: 'Alice', age: 30 })
+  })
+
+  it('does not re-quote already-quoted keys', () => {
+    const { fixes } = repairJson('{"name": "Alice"}')
+    expect(fixes).not.toContain('quoted unquoted keys')
+  })
+
+  // --- comments ---
+  it('removes line comments', () => {
+    const { text, fixes } = repairJson('{\n  "a": 1 // comment\n}')
+    expect(JSON.parse(text)).toEqual({ a: 1 })
+    expect(fixes).toContain('removed line comments')
+  })
+
+  it('removes block comments', () => {
+    const { text, fixes } = repairJson('{ /* comment */ "a": 1 }')
+    expect(JSON.parse(text)).toEqual({ a: 1 })
+    expect(fixes).toContain('removed block comments')
+  })
+
+  it('removes multi-line block comments', () => {
+    const { text } = repairJson('{\n  /* \n   * notes\n   */\n  "a": 1\n}')
+    expect(JSON.parse(text)).toEqual({ a: 1 })
+  })
+
+  // --- combined ---
+  it('fixes multiple issues in one pass', () => {
+    const input = `{
+      // user record
+      name: 'Alice',
+      scores: [10, 20,],
+    }`
+    const { text, fixes } = repairJson(input)
+    expect(JSON.parse(text)).toEqual({ name: 'Alice', scores: [10, 20] })
+    expect(fixes.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('reports fixes array describing each repair', () => {
+    const { fixes } = repairJson('{a: 1,}')
+    expect(Array.isArray(fixes)).toBe(true)
+    expect(fixes.every(f => typeof f === 'string')).toBe(true)
   })
 })
