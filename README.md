@@ -3,6 +3,7 @@
 ![jsonkit](public/og-image.png)
 
 ![Views](https://visitor-badge.laobi.icu/badge?page_id=viveknaskar.json-kit)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github-sponsors)](https://github.com/sponsors/viveknaskar)
 
 Live site: https://viveknaskar.github.io/json-kit/
 
