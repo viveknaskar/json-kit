@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initUnflattenJson()
   initJsonQuery()
   initRepairJson()
+  initEscapeJson()
   initJsonToXml()
   initXmlToJson()
   initJsonMerge()
