@@ -13,6 +13,8 @@ import { parseScalar, parseYaml } from '../../src/tools/YamlToJson.js'
 import { jsonToYaml } from '../../src/tools/JsonToYaml.js'
 import { escapeJson, unescapeJson } from '../../src/tools/EscapeJson.js'
 import { deepMerge } from '../../src/tools/JsonMerge.js'
+import { jsonToXml } from '../../src/tools/JsonToXml.js'
+import { xmlToJson } from '../../src/tools/XmlToJson.js'
 
 /* ===========================
    countStats
@@ -1794,5 +1796,184 @@ describe('deepMerge', () => {
     expect(result.user.name).toBe('Alice')
     expect(result.user.roles).toEqual(['viewer', 'editor'])
     expect(result.user.active).toBe(true)
+  })
+})
+
+/* ===========================
+   jsonToXml
+   =========================== */
+describe('jsonToXml', () => {
+  it('produces an XML declaration', () => {
+    expect(jsonToXml({})).toContain('<?xml version="1.0"')
+  })
+
+  it('wraps output in <root>', () => {
+    const xml = jsonToXml({ a: 1 })
+    expect(xml).toContain('<root>')
+    expect(xml).toContain('</root>')
+  })
+
+  it('converts a flat object', () => {
+    const xml = jsonToXml({ name: 'Alice', age: 30 })
+    expect(xml).toContain('<name>Alice</name>')
+    expect(xml).toContain('<age>30</age>')
+  })
+
+  it('converts a nested object', () => {
+    const xml = jsonToXml({ person: { name: 'Alice' } })
+    expect(xml).toContain('<person>')
+    expect(xml).toContain('<name>Alice</name>')
+    expect(xml).toContain('</person>')
+  })
+
+  it('converts an array by repeating the parent tag', () => {
+    const xml = jsonToXml({ item: ['a', 'b', 'c'] })
+    const matches = xml.match(/<item>/g)
+    expect(matches).toHaveLength(3)
+  })
+
+  it('converts a top-level array wrapping items in <item>', () => {
+    const xml = jsonToXml([1, 2])
+    expect(xml).toContain('<item>1</item>')
+    expect(xml).toContain('<item>2</item>')
+  })
+
+  it('renders null as self-closing tag', () => {
+    const xml = jsonToXml({ empty: null })
+    expect(xml).toContain('<empty/>')
+  })
+
+  it('escapes & in text content', () => {
+    const xml = jsonToXml({ title: 'Cats & Dogs' })
+    expect(xml).toContain('Cats &amp; Dogs')
+  })
+
+  it('escapes < and > in text content', () => {
+    const xml = jsonToXml({ expr: 'a<b>c' })
+    expect(xml).toContain('a&lt;b&gt;c')
+  })
+
+  it('escapes quotes in text content', () => {
+    const xml = jsonToXml({ msg: '"hello"' })
+    expect(xml).toContain('&quot;hello&quot;')
+  })
+
+  it('sanitizes keys with spaces to underscores', () => {
+    const xml = jsonToXml({ 'my key': 1 })
+    expect(xml).toContain('<my_key>')
+  })
+
+  it('prefixes keys starting with a digit', () => {
+    const xml = jsonToXml({ '1key': 'val' })
+    expect(xml).toContain('<_1key>')
+  })
+
+  it('handles boolean values', () => {
+    const xml = jsonToXml({ active: true, deleted: false })
+    expect(xml).toContain('<active>true</active>')
+    expect(xml).toContain('<deleted>false</deleted>')
+  })
+
+  it('handles empty object', () => {
+    const xml = jsonToXml({})
+    expect(xml).toContain('<root>')
+  })
+})
+
+/* ===========================
+   xmlToJson
+   =========================== */
+describe('xmlToJson', () => {
+  it('parses a simple element', () => {
+    const result = xmlToJson('<root><name>Alice</name></root>')
+    expect(result).toEqual({ name: 'Alice' })
+  })
+
+  it('coerces numeric text to number', () => {
+    const result = xmlToJson('<root><age>30</age></root>')
+    expect(result.age).toBe(30)
+  })
+
+  it('coerces boolean text values', () => {
+    const result = xmlToJson('<root><active>true</active><deleted>false</deleted></root>')
+    expect(result.active).toBe(true)
+    expect(result.deleted).toBe(false)
+  })
+
+  it('coerces null text value', () => {
+    const result = xmlToJson('<root><val>null</val></root>')
+    expect(result.val).toBeNull()
+  })
+
+  it('returns null for self-closing elements', () => {
+    const result = xmlToJson('<root><empty/></root>')
+    expect(result.empty).toBeNull()
+  })
+
+  it('parses nested elements into objects', () => {
+    const xml = '<root><person><name>Alice</name><age>30</age></person></root>'
+    const result = xmlToJson(xml)
+    expect(result.person).toEqual({ name: 'Alice', age: 30 })
+  })
+
+  it('collects repeated tags into an array', () => {
+    const xml = '<root><tag>a</tag><tag>b</tag><tag>c</tag></root>'
+    const result = xmlToJson(xml)
+    expect(Array.isArray(result.tag)).toBe(true)
+    expect(result.tag).toEqual(['a', 'b', 'c'])
+  })
+
+  it('skips XML declaration', () => {
+    const xml = '<?xml version="1.0" encoding="UTF-8"?><root><x>1</x></root>'
+    const result = xmlToJson(xml)
+    expect(result.x).toBe(1)
+  })
+
+  it('skips XML comments', () => {
+    const xml = '<root><!-- comment --><x>1</x></root>'
+    const result = xmlToJson(xml)
+    expect(result.x).toBe(1)
+  })
+
+  it('unescapes &amp; in text', () => {
+    const xml = '<root><title>Cats &amp; Dogs</title></root>'
+    const result = xmlToJson(xml)
+    expect(result.title).toBe('Cats & Dogs')
+  })
+
+  it('unescapes &lt; and &gt;', () => {
+    const xml = '<root><expr>a&lt;b&gt;c</expr></root>'
+    const result = xmlToJson(xml)
+    expect(result.expr).toBe('a<b>c')
+  })
+
+  it('unescapes &quot;', () => {
+    const xml = '<root><msg>&quot;hello&quot;</msg></root>'
+    const result = xmlToJson(xml)
+    expect(result.msg).toBe('"hello"')
+  })
+
+  it('handles CDATA sections', () => {
+    const xml = '<root><code><![CDATA[<b>bold</b>]]></code></root>'
+    const result = xmlToJson(xml)
+    expect(result.code).toBe('<b>bold</b>')
+  })
+
+  it('throws on missing root element', () => {
+    expect(() => xmlToJson('not xml')).toThrow()
+  })
+
+  it('round-trips with jsonToXml for flat objects', () => {
+    const original = { name: 'Alice', age: 30, active: true }
+    const xml = jsonToXml(original)
+    const restored = xmlToJson(xml)
+    expect(restored).toEqual(original)
+  })
+
+  it('round-trips with jsonToXml for nested objects', () => {
+    const original = { person: { name: 'Bob', score: 99 } }
+    const xml = jsonToXml(original)
+    const restored = xmlToJson(xml)
+    expect(restored).toEqual(original)
   })
 })

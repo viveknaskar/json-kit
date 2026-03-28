@@ -26,6 +26,8 @@ import { init as initUnflattenJson } from './tools/UnflattenJson.js'
 import { init as initJsonQuery     } from './tools/JsonQuery.js'
 import { init as initRepairJson   } from './tools/RepairJson.js'
 import { init as initEscapeJson   } from './tools/EscapeJson.js'
+import { init as initJsonToXml    } from './tools/JsonToXml.js'
+import { init as initXmlToJson    } from './tools/XmlToJson.js'
 import { init as initJsonMerge    } from './tools/JsonMerge.js'
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -46,6 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initUnflattenJson()
   initJsonQuery()
   initRepairJson()
+  initJsonToXml()
+  initXmlToJson()
   initJsonMerge()
 
   // Restore view from URL hash (e.g. direct link to a tool)

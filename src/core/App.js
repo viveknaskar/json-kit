@@ -14,6 +14,8 @@ const tools = [
   { id: 'csv-to-json',    name: 'CSV to JSON',         desc: 'Convert CSV data to a JSON array',                        icon: '⇠', accent: '#f59e0b', category: 'convert'   },
   { id: 'json-to-yaml',   name: 'JSON to YAML',        desc: 'Convert JSON to human-readable YAML format',              icon: '⟿', accent: '#ef4444', category: 'convert'   },
   { id: 'yaml-to-json',   name: 'YAML to JSON',        desc: 'Convert YAML configuration back to JSON',                 icon: '⟻', accent: '#ec4899', category: 'convert'   },
+  { id: 'json-to-xml',    name: 'JSON to XML',         desc: 'Convert JSON to structured XML markup',                   icon: '⟩', accent: '#0891b2', category: 'convert'   },
+  { id: 'xml-to-json',    name: 'XML to JSON',         desc: 'Parse XML and convert it back to JSON',                   icon: '⟨', accent: '#7c3aed', category: 'convert'   },
   // Analyze & Transform
   { id: 'json-merge',     name: 'JSON Merge',          desc: 'Deep merge two JSON objects, with B values taking precedence', icon: '⊞', accent: '#6366f1', category: 'transform' },
   { id: 'json-diff',      name: 'JSON Diff',           desc: 'Compare two JSON objects and highlight differences',      icon: '⊕', accent: '#f97316', category: 'transform' },
@@ -69,7 +71,7 @@ export default class App {
         <!-- Hero -->
         <section class="hero">
           <h1 class="hero-title">Free JSON tools,<br><em>no server needed</em></h1>
-          <p class="hero-tagline">Format, convert, diff, query and merge JSON right in your browser. No uploads to servers. No sign-up. 15 tools and counting.</p>
+          <p class="hero-tagline">Format, convert, diff, query and merge JSON right in your browser. No uploads to servers. No sign-up. 17 tools and counting.</p>
           <div class="hero-badges">
             <span>Zero uploads</span>
             <span>Runs locally</span>
@@ -174,6 +176,8 @@ export default class App {
       ${this.csvToJsonViewHTML()}
       ${this.jsonToYamlViewHTML()}
       ${this.yamlToJsonViewHTML()}
+      ${this.jsonToXmlViewHTML()}
+      ${this.xmlToJsonViewHTML()}
       ${this.jsonMergeViewHTML()}
       ${this.jsonDiffViewHTML()}
       ${this.jsonSchemaViewHTML()}
@@ -468,6 +472,86 @@ export default class App {
               <div id="y2j-output" class="output-area empty">JSON output will appear here…</div>
             </div>
             <div class="status-message" id="y2j-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  jsonToXmlViewHTML() {
+    const t = tools.find(x => x.id === 'json-to-xml')
+    return `
+      <div id="view-json-to-xml" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Input JSON</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="j2x-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="j2x-input" class="code-area" placeholder='{"person":{"name":"Alice","age":30},"tags":["admin","user"]}' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="j2x-btn">Convert to XML</button>
+              <div class="stats-bar" id="j2x-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">XML Output</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="j2x-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="j2x-download">Download .xml</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="j2x-output" class="output-area empty">XML output will appear here…</div>
+            </div>
+            <div class="status-message" id="j2x-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  xmlToJsonViewHTML() {
+    const t = tools.find(x => x.id === 'xml-to-json')
+    return `
+      <div id="view-xml-to-json" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Input XML</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="x2j-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="x2j-input" class="code-area" placeholder='<?xml version="1.0"?>&#10;<root>&#10;  <person>&#10;    <name>Alice</name>&#10;    <age>30</age>&#10;  </person>&#10;</root>' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="x2j-btn">Convert to JSON</button>
+              <div class="stats-bar" id="x2j-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">JSON Output</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="x2j-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="x2j-download">Download .json</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="x2j-output" class="output-area empty">JSON output will appear here…</div>
+            </div>
+            <div class="status-message" id="x2j-status"></div>
           </div>
         </div>
       </div>
