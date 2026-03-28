@@ -111,17 +111,6 @@ No data is ever sent over the network. There is no backend, no database, and no 
 
 ---
 
-## Tech Stack
-
-| Library | Role |
-|---------|------|
-| [Vite](https://vitejs.dev/) | Dev server, ES module bundler, and production build tool |
-| [Vitest](https://vitest.dev/) | Unit test runner with happy-dom environment |
-
-No frontend framework, plain HTML, CSS, and ES modules.
-
----
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, project structure, and how to add a new tool.
