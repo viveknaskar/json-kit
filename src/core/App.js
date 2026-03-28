@@ -16,6 +16,8 @@ const tools = [
   { id: 'yaml-to-json',   name: 'YAML to JSON',        desc: 'Convert YAML configuration back to JSON',                 icon: '⟻', accent: '#ec4899', category: 'convert'   },
   { id: 'json-to-xml',    name: 'JSON to XML',         desc: 'Convert JSON to structured XML markup',                   icon: '⟩', accent: '#0891b2', category: 'convert'   },
   { id: 'xml-to-json',    name: 'XML to JSON',         desc: 'Parse XML and convert it back to JSON',                   icon: '⟨', accent: '#7c3aed', category: 'convert'   },
+  { id: 'json-to-ts',     name: 'JSON to TypeScript',  desc: 'Generate TypeScript interfaces from a JSON object',       icon: 'TS', accent: '#3178c6', category: 'convert'   },
+  { id: 'json-to-table',  name: 'JSON to Markdown',    desc: 'Convert a JSON array to a Markdown table',                icon: '⊟', accent: '#059669', category: 'convert'   },
   // Analyze & Transform
   { id: 'json-merge',     name: 'JSON Merge',          desc: 'Deep merge two JSON objects, with B values taking precedence', icon: '⊞', accent: '#6366f1', category: 'transform' },
   { id: 'json-diff',      name: 'JSON Diff',           desc: 'Compare two JSON objects and highlight differences',      icon: '⊕', accent: '#f97316', category: 'transform' },
@@ -23,6 +25,9 @@ const tools = [
   { id: 'flatten-json',   name: 'Flatten JSON',        desc: 'Flatten nested objects to dot-notation keys',             icon: '⬇', accent: '#14b8a6', category: 'transform' },
   { id: 'unflatten-json', name: 'Unflatten JSON',      desc: 'Restore dot-notation keys to nested structure',           icon: '⬆', accent: '#a855f7', category: 'transform' },
   { id: 'json-query',     name: 'JSON Query',          desc: 'Extract data from JSON using path expressions',           icon: '⌕', accent: '#fb923c', category: 'transform' },
+  { id: 'base64-json',    name: 'Base64 Encode/Decode',desc: 'Encode text or JSON to Base64, or decode it back',        icon: '64', accent: '#d97706', category: 'transform' },
+  { id: 'remove-nulls',   name: 'Remove Nulls',        desc: 'Strip null values, empty strings, and empty collections', icon: '∅', accent: '#dc2626', category: 'transform' },
+  { id: 'pick-omit',      name: 'Pick / Omit Keys',    desc: 'Extract or remove specific key paths from a JSON object', icon: '⋯', accent: '#0d9488', category: 'transform' },
 ]
 
 export default class App {
@@ -71,7 +76,7 @@ export default class App {
         <!-- Hero -->
         <section class="hero">
           <h1 class="hero-title">Free JSON tools,<br><em>no server needed</em></h1>
-          <p class="hero-tagline">Format, convert, diff, query and merge JSON right in your browser. No uploads to servers. No sign-up. 17 tools and counting.</p>
+          <p class="hero-tagline">Format, convert, diff, query and merge JSON right in your browser. No uploads to servers. No sign-up. 22 tools and counting.</p>
           <div class="hero-badges">
             <span>Zero uploads</span>
             <span>Runs locally</span>
@@ -186,6 +191,11 @@ export default class App {
       ${this.jsonQueryViewHTML()}
       ${this.repairJsonViewHTML()}
       ${this.escapeJsonViewHTML()}
+      ${this.jsonToTypeScriptViewHTML()}
+      ${this.jsonToMarkdownTableViewHTML()}
+      ${this.base64JsonViewHTML()}
+      ${this.removeNullsViewHTML()}
+      ${this.pickOmitKeysViewHTML()}
     `
   }
 
@@ -923,6 +933,215 @@ export default class App {
               <div id="repair-output" class="output-area empty">Repaired JSON will appear here…</div>
             </div>
             <div class="status-message" id="repair-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  jsonToTypeScriptViewHTML() {
+    const t = tools.find(x => x.id === 'json-to-ts')
+    return `
+      <div id="view-json-to-ts" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Input JSON</span>
+              <div class="pane-actions">
+                <input id="j2ts-root-name" class="inline-input" type="text" placeholder="Root name (e.g. User)" maxlength="64" style="width:140px;" />
+                <button class="btn btn-ghost btn-sm" id="j2ts-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="j2ts-input" class="code-area" placeholder='{"id":1,"name":"Alice","roles":["admin"]}' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="j2ts-btn">Generate Types</button>
+              <div class="stats-bar" id="j2ts-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">TypeScript Interfaces</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="j2ts-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="j2ts-download">Download .ts</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="j2ts-output" class="output-area empty">TypeScript interfaces will appear here…</div>
+            </div>
+            <div class="status-message" id="j2ts-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  jsonToMarkdownTableViewHTML() {
+    const t = tools.find(x => x.id === 'json-to-table')
+    return `
+      <div id="view-json-to-table" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Input JSON Array</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="j2md-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="j2md-input" class="code-area" placeholder='[{"name":"Alice","age":30},{"name":"Bob","age":25}]' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="j2md-btn">Convert to Table</button>
+              <div class="stats-bar" id="j2md-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Markdown Table</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="j2md-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="j2md-download">Download .md</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="j2md-output" class="output-area empty">Markdown table will appear here…</div>
+            </div>
+            <div class="status-message" id="j2md-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  base64JsonViewHTML() {
+    const t = tools.find(x => x.id === 'base64-json')
+    return `
+      <div id="view-base64-json" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Input</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="b64-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="b64-input" class="code-area" placeholder='Paste text or JSON to encode, or a Base64 string to decode…' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="b64-encode-btn">Encode →</button>
+              <button class="btn btn-secondary" id="b64-decode-btn">← Decode</button>
+              <div class="stats-bar" id="b64-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Output</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="b64-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="b64-download">Download</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="b64-output" class="output-area empty">Result will appear here…</div>
+            </div>
+            <div class="status-message" id="b64-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  removeNullsViewHTML() {
+    const t = tools.find(x => x.id === 'remove-nulls')
+    return `
+      <div id="view-remove-nulls" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Input JSON</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="rn-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="rn-input" class="code-area" placeholder='{"name":"Alice","age":null,"email":"","tags":[]}' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="rn-btn">Clean JSON</button>
+              <label class="inline-check"><input type="checkbox" id="rn-opt-strings" /> Empty strings</label>
+              <label class="inline-check"><input type="checkbox" id="rn-opt-arrays" /> Empty arrays</label>
+              <label class="inline-check"><input type="checkbox" id="rn-opt-objects" /> Empty objects</label>
+              <div class="stats-bar" id="rn-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Cleaned Output</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="rn-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="rn-download">Download</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="rn-output" class="output-area empty">Cleaned JSON will appear here…</div>
+            </div>
+            <div class="status-message" id="rn-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  pickOmitKeysViewHTML() {
+    const t = tools.find(x => x.id === 'pick-omit')
+    return `
+      <div id="view-pick-omit" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Input JSON</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="po-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="po-input" class="code-area" placeholder='{"id":1,"name":"Alice","password":"secret","address":{"city":"NYC"}}' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <input id="po-keys" class="inline-input" type="text" placeholder="Key paths, comma-separated (e.g. name, address.city)" style="flex:1;min-width:0;" />
+            </div>
+            <div class="action-bar" style="padding-top:0;">
+              <button class="btn btn-primary" id="po-pick-btn">Pick →</button>
+              <button class="btn btn-secondary" id="po-omit-btn">Omit →</button>
+              <div class="stats-bar" id="po-input-stats"><span>0 chars</span></div>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Output</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="po-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="po-download">Download</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="po-output" class="output-area empty">Result will appear here…</div>
+            </div>
+            <div class="status-message" id="po-status"></div>
           </div>
         </div>
       </div>

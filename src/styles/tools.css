@@ -457,3 +457,34 @@
     width: 100%;
   }
 }
+
+/* ---- Inline form elements used in action bars ---- */
+.inline-input {
+  background: var(--bg-tertiary, var(--bg-secondary));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 0.3rem 0.6rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.inline-input:focus {
+  border-color: var(--accent);
+}
+
+.inline-check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.inline-check input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}

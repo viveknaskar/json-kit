@@ -15,6 +15,11 @@ import { escapeJson, unescapeJson } from '../../src/tools/EscapeJson.js'
 import { deepMerge } from '../../src/tools/JsonMerge.js'
 import { jsonToXml } from '../../src/tools/JsonToXml.js'
 import { xmlToJson } from '../../src/tools/XmlToJson.js'
+import { jsonToTypeScript } from '../../src/tools/JsonToTypeScript.js'
+import { jsonToMarkdownTable } from '../../src/tools/JsonToMarkdownTable.js'
+import { encodeBase64, decodeBase64 } from '../../src/tools/Base64Json.js'
+import { removeNulls } from '../../src/tools/RemoveNulls.js'
+import { pickKeys, omitKeys } from '../../src/tools/PickOmitKeys.js'
 
 /* ===========================
    countStats
@@ -1975,5 +1980,273 @@ describe('xmlToJson', () => {
     const xml = jsonToXml(original)
     const restored = xmlToJson(xml)
     expect(restored).toEqual(original)
+  })
+})
+
+/* ===========================
+   jsonToTypeScript
+   =========================== */
+describe('jsonToTypeScript', () => {
+  it('generates interface for a flat object', () => {
+    const result = jsonToTypeScript({ name: 'Alice', age: 30 }, 'User')
+    expect(result).toContain('export interface User')
+    expect(result).toContain('name: string;')
+    expect(result).toContain('age: number;')
+  })
+
+  it('uses Root as default interface name', () => {
+    const result = jsonToTypeScript({ x: 1 })
+    expect(result).toContain('export interface Root')
+  })
+
+  it('maps boolean fields to boolean', () => {
+    const result = jsonToTypeScript({ active: true }, 'Item')
+    expect(result).toContain('active: boolean;')
+  })
+
+  it('maps null fields to null', () => {
+    const result = jsonToTypeScript({ data: null }, 'Item')
+    expect(result).toContain('data: null;')
+  })
+
+  it('maps string array to string[]', () => {
+    const result = jsonToTypeScript({ tags: ['a', 'b'] }, 'Item')
+    expect(result).toContain('tags: string[];')
+  })
+
+  it('generates nested interface for object field', () => {
+    const result = jsonToTypeScript({ address: { city: 'NY', zip: '10001' } }, 'User')
+    expect(result).toContain('export interface Address')
+    expect(result).toContain('city: string;')
+    expect(result).toContain('address: Address;')
+  })
+
+  it('generates interface for array of objects', () => {
+    const result = jsonToTypeScript({ users: [{ id: 1, name: 'Alice' }] }, 'Root')
+    expect(result).toContain('export interface User')
+    expect(result).toContain('users: User[];')
+  })
+
+  it('handles empty array as unknown[]', () => {
+    const result = jsonToTypeScript({ items: [] }, 'Root')
+    expect(result).toContain('items: unknown[];')
+  })
+
+  it('handles mixed-type array with union', () => {
+    const result = jsonToTypeScript({ vals: [1, 'str'] }, 'Root')
+    expect(result).toContain('(number | string)[]')
+  })
+
+  it('returns empty string for empty object', () => {
+    const result = jsonToTypeScript({}, 'Root')
+    expect(result).toContain('export interface Root')
+  })
+})
+
+/* ===========================
+   jsonToMarkdownTable
+   =========================== */
+describe('jsonToMarkdownTable', () => {
+  it('throws for non-array input', () => {
+    expect(() => jsonToMarkdownTable({ a: 1 })).toThrow('JSON array')
+  })
+
+  it('returns empty table marker for empty array', () => {
+    const result = jsonToMarkdownTable([])
+    expect(result).toContain('empty')
+  })
+
+  it('generates header row from object keys', () => {
+    const result = jsonToMarkdownTable([{ name: 'Alice', age: 30 }])
+    expect(result).toContain('| name | age |')
+  })
+
+  it('generates separator row', () => {
+    const result = jsonToMarkdownTable([{ a: 1 }])
+    expect(result).toContain('| :------')
+  })
+
+  it('fills in data rows', () => {
+    const result = jsonToMarkdownTable([{ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 }])
+    expect(result).toContain('| Alice | 30 |')
+    expect(result).toContain('| Bob | 25 |')
+  })
+
+  it('leaves cell empty for missing keys', () => {
+    const result = jsonToMarkdownTable([{ a: 1 }, { a: 2, b: 3 }])
+    expect(result).toContain('| a | b |')
+    // first row has no b value
+    expect(result).toContain('| 1 |  |')
+  })
+
+  it('serialises nested objects as JSON in cell', () => {
+    const result = jsonToMarkdownTable([{ meta: { x: 1 } }])
+    expect(result).toContain('{"x":1}')
+  })
+
+  it('escapes pipe characters in cell values', () => {
+    const result = jsonToMarkdownTable([{ a: 'foo|bar' }])
+    expect(result).toContain('foo\\|bar')
+  })
+
+  it('handles array of primitives with single value column', () => {
+    const result = jsonToMarkdownTable([1, 2, 3])
+    expect(result).toContain('| value |')
+    expect(result).toContain('| 1 |')
+  })
+})
+
+/* ===========================
+   encodeBase64 / decodeBase64
+   =========================== */
+describe('encodeBase64', () => {
+  it('encodes ASCII text', () => {
+    expect(encodeBase64('hello')).toBe('aGVsbG8=')
+  })
+
+  it('encodes empty string', () => {
+    expect(encodeBase64('')).toBe('')
+  })
+
+  it('encodes JSON string', () => {
+    const json = '{"a":1}'
+    const encoded = encodeBase64(json)
+    expect(typeof encoded).toBe('string')
+    expect(encoded.length).toBeGreaterThan(0)
+  })
+
+  it('round-trips ASCII', () => {
+    const text = 'Hello, World!'
+    expect(decodeBase64(encodeBase64(text))).toBe(text)
+  })
+
+  it('round-trips unicode', () => {
+    const text = 'こんにちは'
+    expect(decodeBase64(encodeBase64(text))).toBe(text)
+  })
+
+  it('round-trips emoji', () => {
+    const text = '🚀 JSON 🎉'
+    expect(decodeBase64(encodeBase64(text))).toBe(text)
+  })
+})
+
+describe('decodeBase64', () => {
+  it('decodes known base64', () => {
+    expect(decodeBase64('aGVsbG8=')).toBe('hello')
+  })
+
+  it('throws for invalid base64', () => {
+    expect(() => decodeBase64('!!!invalid!!!')).toThrow()
+  })
+})
+
+/* ===========================
+   removeNulls
+   =========================== */
+describe('removeNulls', () => {
+  it('removes null values from flat object', () => {
+    expect(removeNulls({ a: 1, b: null })).toEqual({ a: 1 })
+  })
+
+  it('removes null values recursively', () => {
+    expect(removeNulls({ a: { b: null, c: 2 } })).toEqual({ a: { c: 2 } })
+  })
+
+  it('removes nulls from arrays', () => {
+    expect(removeNulls({ arr: [1, null, 2] })).toEqual({ arr: [1, 2] })
+  })
+
+  it('does not remove empty strings by default', () => {
+    expect(removeNulls({ a: '' })).toEqual({ a: '' })
+  })
+
+  it('removes empty strings when option is set', () => {
+    expect(removeNulls({ a: '' }, { emptyStrings: true })).toEqual({})
+  })
+
+  it('does not remove empty arrays by default', () => {
+    expect(removeNulls({ a: [] })).toEqual({ a: [] })
+  })
+
+  it('removes empty arrays when option is set', () => {
+    expect(removeNulls({ a: [] }, { emptyArrays: true })).toEqual({})
+  })
+
+  it('does not remove empty objects by default', () => {
+    expect(removeNulls({ a: {} })).toEqual({ a: {} })
+  })
+
+  it('removes empty objects when option is set', () => {
+    expect(removeNulls({ a: {} }, { emptyObjects: true })).toEqual({})
+  })
+
+  it('keeps false and 0', () => {
+    expect(removeNulls({ a: false, b: 0 })).toEqual({ a: false, b: 0 })
+  })
+
+  it('returns null for null input', () => {
+    expect(removeNulls(null)).toBeNull()
+  })
+
+  it('handles array at top level', () => {
+    expect(removeNulls([1, null, 2])).toEqual([1, 2])
+  })
+})
+
+/* ===========================
+   pickKeys / omitKeys
+   =========================== */
+describe('pickKeys', () => {
+  it('picks a top-level key', () => {
+    expect(pickKeys({ a: 1, b: 2 }, ['a'])).toEqual({ a: 1 })
+  })
+
+  it('picks multiple keys', () => {
+    expect(pickKeys({ a: 1, b: 2, c: 3 }, ['a', 'c'])).toEqual({ a: 1, c: 3 })
+  })
+
+  it('picks a nested key with dot notation', () => {
+    expect(pickKeys({ a: { b: 1, c: 2 } }, ['a.b'])).toEqual({ a: { b: 1 } })
+  })
+
+  it('ignores keys that do not exist', () => {
+    expect(pickKeys({ a: 1 }, ['z'])).toEqual({})
+  })
+
+  it('preserves array values', () => {
+    expect(pickKeys({ a: [1, 2], b: 3 }, ['a'])).toEqual({ a: [1, 2] })
+  })
+
+  it('returns empty object for empty paths', () => {
+    expect(pickKeys({ a: 1 }, [])).toEqual({})
+  })
+})
+
+describe('omitKeys', () => {
+  it('omits a top-level key', () => {
+    expect(omitKeys({ a: 1, b: 2 }, ['b'])).toEqual({ a: 1 })
+  })
+
+  it('omits multiple keys', () => {
+    expect(omitKeys({ a: 1, b: 2, c: 3 }, ['a', 'c'])).toEqual({ b: 2 })
+  })
+
+  it('omits a nested key with dot notation', () => {
+    expect(omitKeys({ a: { b: 1, c: 2 } }, ['a.b'])).toEqual({ a: { c: 2 } })
+  })
+
+  it('does not mutate the original object', () => {
+    const obj = { a: 1, b: 2 }
+    omitKeys(obj, ['a'])
+    expect(obj).toEqual({ a: 1, b: 2 })
+  })
+
+  it('ignores keys that do not exist', () => {
+    expect(omitKeys({ a: 1 }, ['z'])).toEqual({ a: 1 })
+  })
+
+  it('returns full object for empty paths', () => {
+    expect(omitKeys({ a: 1 }, [])).toEqual({ a: 1 })
   })
 })
