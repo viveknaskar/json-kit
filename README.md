@@ -14,10 +14,6 @@ Built with vanilla JavaScript and [Vite](https://vitejs.dev/).
 
 ## Screenshots
 
-### Home
-
-![Home](public/screenshots/home.png)
-
 ### Essentials
 
 | Format & Validate | Minify JSON | Sort Keys |
