@@ -11,6 +11,8 @@ import { validate } from '../../src/tools/JsonSchema.js'
 import { queryJson } from '../../src/tools/JsonQuery.js'
 import { parseScalar, parseYaml } from '../../src/tools/YamlToJson.js'
 import { jsonToYaml } from '../../src/tools/JsonToYaml.js'
+import { escapeJson, unescapeJson } from '../../src/tools/EscapeJson.js'
+import { deepMerge } from '../../src/tools/JsonMerge.js'
 
 /* ===========================
    countStats
@@ -1607,5 +1609,190 @@ describe('repairJson', () => {
     const { fixes } = repairJson('{a: 1,}')
     expect(Array.isArray(fixes)).toBe(true)
     expect(fixes.every(f => typeof f === 'string')).toBe(true)
+  })
+})
+
+/* ===========================
+   escapeJson / unescapeJson
+   =========================== */
+describe('escapeJson', () => {
+  it('wraps a plain string in double quotes', () => {
+    expect(escapeJson('hello')).toBe('"hello"')
+  })
+
+  it('escapes double quotes inside the string', () => {
+    expect(escapeJson('say "hi"')).toBe('"say \\"hi\\""')
+  })
+
+  it('escapes backslashes', () => {
+    expect(escapeJson('a\\b')).toBe('"a\\\\b"')
+  })
+
+  it('escapes newlines as \\n', () => {
+    expect(escapeJson('line1\nline2')).toBe('"line1\\nline2"')
+  })
+
+  it('escapes tabs as \\t', () => {
+    expect(escapeJson('col1\tcol2')).toBe('"col1\\tcol2"')
+  })
+
+  it('escapes carriage returns as \\r', () => {
+    expect(escapeJson('a\rb')).toBe('"a\\rb"')
+  })
+
+  it('produces output that is valid JSON', () => {
+    const raw = 'hello "world"\nwith tab\there'
+    const escaped = escapeJson(raw)
+    expect(JSON.parse(escaped)).toBe(raw)
+  })
+
+  it('handles empty string', () => {
+    expect(escapeJson('')).toBe('""')
+  })
+
+  it('handles unicode characters', () => {
+    const escaped = escapeJson('café')
+    expect(JSON.parse(escaped)).toBe('café')
+  })
+})
+
+describe('unescapeJson', () => {
+  it('parses a double-quoted JSON string', () => {
+    expect(unescapeJson('"hello"')).toBe('hello')
+  })
+
+  it('unescapes \\n back to newline', () => {
+    expect(unescapeJson('"line1\\nline2"')).toBe('line1\nline2')
+  })
+
+  it('unescapes \\\\ back to backslash', () => {
+    expect(unescapeJson('"a\\\\b"')).toBe('a\\b')
+  })
+
+  it('unescapes \\" back to double quote', () => {
+    expect(unescapeJson('"say \\"hi\\""')).toBe('say "hi"')
+  })
+
+  it('unescapes bare content without surrounding quotes', () => {
+    expect(unescapeJson('hello\\nworld')).toBe('hello\nworld')
+  })
+
+  it('round-trips with escapeJson', () => {
+    const original = 'hello "world"\nwith\\backslash'
+    expect(unescapeJson(escapeJson(original))).toBe(original)
+  })
+
+  it('throws on truly invalid escaped content', () => {
+    expect(() => unescapeJson('"unclosed')).toThrow()
+  })
+})
+
+/* ===========================
+   deepMerge
+   =========================== */
+describe('deepMerge', () => {
+  // --- basic object merging ---
+  it('merges two flat objects — b overrides a', () => {
+    const result = deepMerge({ a: 1, b: 2 }, { b: 99, c: 3 })
+    expect(result).toEqual({ a: 1, b: 99, c: 3 })
+  })
+
+  it('does not mutate the original objects', () => {
+    const a = { x: 1 }
+    const b = { y: 2 }
+    deepMerge(a, b)
+    expect(a).toEqual({ x: 1 })
+    expect(b).toEqual({ y: 2 })
+  })
+
+  it('adds keys present only in b', () => {
+    const result = deepMerge({ a: 1 }, { b: 2 })
+    expect(result.a).toBe(1)
+    expect(result.b).toBe(2)
+  })
+
+  it('keeps keys present only in a', () => {
+    const result = deepMerge({ a: 1, b: 2 }, { b: 99 })
+    expect(result.a).toBe(1)
+  })
+
+  // --- deep / recursive merging ---
+  it('recursively merges nested objects', () => {
+    const result = deepMerge(
+      { settings: { theme: 'dark', lang: 'en' } },
+      { settings: { lang: 'fr' } }
+    )
+    expect(result.settings.theme).toBe('dark')
+    expect(result.settings.lang).toBe('fr')
+  })
+
+  it('recursively merges multiple levels deep', () => {
+    const result = deepMerge(
+      { a: { b: { c: 1, d: 2 } } },
+      { a: { b: { d: 99, e: 3 } } }
+    )
+    expect(result.a.b.c).toBe(1)
+    expect(result.a.b.d).toBe(99)
+    expect(result.a.b.e).toBe(3)
+  })
+
+  it('b primitive overrides a object at same key', () => {
+    const result = deepMerge({ a: { nested: 1 } }, { a: 42 })
+    expect(result.a).toBe(42)
+  })
+
+  it('b object overrides a primitive at same key', () => {
+    const result = deepMerge({ a: 42 }, { a: { nested: 1 } })
+    expect(result.a).toEqual({ nested: 1 })
+  })
+
+  // --- array modes ---
+  it('arrays: replace mode — b array replaces a array (default)', () => {
+    const result = deepMerge({ tags: ['a', 'b'] }, { tags: ['c'] })
+    expect(result.tags).toEqual(['c'])
+  })
+
+  it('arrays: replace mode — explicit', () => {
+    const result = deepMerge({ items: [1, 2] }, { items: [3, 4] }, 'replace')
+    expect(result.items).toEqual([3, 4])
+  })
+
+  it('arrays: concat mode — b array appended to a array', () => {
+    const result = deepMerge({ tags: ['a', 'b'] }, { tags: ['c', 'd'] }, 'concat')
+    expect(result.tags).toEqual(['a', 'b', 'c', 'd'])
+  })
+
+  it('arrays: concat mode with empty a array', () => {
+    const result = deepMerge({ tags: [] }, { tags: ['x'] }, 'concat')
+    expect(result.tags).toEqual(['x'])
+  })
+
+  it('arrays: concat mode with empty b array', () => {
+    const result = deepMerge({ tags: ['x'] }, { tags: [] }, 'concat')
+    expect(result.tags).toEqual(['x'])
+  })
+
+  // --- edge cases ---
+  it('merging two empty objects returns empty object', () => {
+    expect(deepMerge({}, {})).toEqual({})
+  })
+
+  it('b value null overrides a value', () => {
+    const result = deepMerge({ a: 1 }, { a: null })
+    expect(result.a).toBeNull()
+  })
+
+  it('a value null does not prevent b object from being set', () => {
+    const result = deepMerge({ a: null }, { a: { x: 1 } })
+    expect(result.a).toEqual({ x: 1 })
+  })
+
+  it('handles mixed nested + array in single merge', () => {
+    const a = { user: { name: 'Alice', roles: ['viewer'] } }
+    const b = { user: { roles: ['editor'], active: true } }
+    const result = deepMerge(a, b, 'concat')
+    expect(result.user.name).toBe('Alice')
+    expect(result.user.roles).toEqual(['viewer', 'editor'])
+    expect(result.user.active).toBe(true)
   })
 })

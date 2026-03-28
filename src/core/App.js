@@ -47,10 +47,7 @@ export default class App {
     return `
       <header class="site-header">
         <div class="header-inner">
-          <a class="site-logo" data-nav="home" href="#" aria-label="JSON Kit home">
-            <span class="logo-icon">{}</span>
-            <span>JSON Kit</span>
-          </a>
+          <a class="site-logo" data-nav="home" href="#" aria-label="JSON Kit home">json<span>kit</span></a>
           <nav class="site-nav" aria-label="Main navigation">
             <a class="nav-link" data-nav="home" data-section="essentials" href="#">Essentials</a>
             <a class="nav-link" data-nav="home" data-section="convert" href="#">Convert</a>
@@ -71,25 +68,13 @@ export default class App {
       <div id="view-home" class="home-view">
         <!-- Hero -->
         <section class="hero">
-          <div class="hero-eyebrow">
-            <span>{}</span>
-            <span>Browser-based · Zero uploads</span>
-          </div>
-          <h1 class="hero-title">JSON <span>Kit</span></h1>
-          <p class="hero-tagline">15 free JSON tools in your browser — format, convert, diff, query and more. Your data never leaves your device.</p>
-          <div class="hero-props">
-            <div class="hero-prop">
-              <div class="hero-prop-icon">🔒</div>
-              <span><strong>Private</strong> — runs locally</span>
-            </div>
-            <div class="hero-prop">
-              <div class="hero-prop-icon">⚡</div>
-              <span><strong>Fast</strong> — no round-trips</span>
-            </div>
-            <div class="hero-prop">
-              <div class="hero-prop-icon">◎</div>
-              <span><strong>Free</strong> — no account needed</span>
-            </div>
+          <h1 class="hero-title">Free JSON tools,<br><em>no server needed</em></h1>
+          <p class="hero-tagline">Format, convert, diff, query and merge JSON right in your browser. No uploads to servers. No sign-up. 15 tools and counting.</p>
+          <div class="hero-badges">
+            <span>Zero uploads</span>
+            <span>Runs locally</span>
+            <span>Works offline</span>
+            <span>100% free</span>
           </div>
         </section>
 
