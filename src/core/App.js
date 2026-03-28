@@ -60,7 +60,6 @@ export default class App {
             <a class="nav-link" data-nav="home" data-section="convert" href="#">Convert</a>
             <a class="nav-link" data-nav="home" data-section="transform" href="#">Analyze &amp; Transform</a>
             <a class="nav-link" data-nav="home" data-section="about" href="#">About</a>
-            <a class="nav-link" data-nav="home" data-section="license" href="#">License</a>
           </nav>
         </div>
       </header>
@@ -118,40 +117,6 @@ export default class App {
             </div>
             <div class="tool-grid">
               ${transform.map(t => this.toolCardHTML(t)).join('')}
-            </div>
-          </section>
-
-          <!-- License -->
-          <section id="section-license" class="about-section" style="padding:0;margin-top:1rem;">
-            <div class="section-header">
-              <h2 class="section-title">License</h2>
-            </div>
-            <div class="about-card">
-              <div>
-                <h2>MIT License</h2>
-                <p>Copyright &copy; 2026 Vivek Naskar</p>
-                <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &ldquo;Software&rdquo;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
-                <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
-                <p style="color:var(--text-muted);font-size:0.85rem;">THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
-              </div>
-              <div class="about-features">
-                <div class="about-feature">
-                  <div class="about-feature-icon">✓</div>
-                  <div><strong>Free to use</strong> — personal and commercial use permitted.</div>
-                </div>
-                <div class="about-feature">
-                  <div class="about-feature-icon">✓</div>
-                  <div><strong>Free to modify</strong> — fork it, adapt it, make it your own.</div>
-                </div>
-                <div class="about-feature">
-                  <div class="about-feature-icon">✓</div>
-                  <div><strong>Free to distribute</strong> — share or self-host without restriction.</div>
-                </div>
-                <div class="about-feature">
-                  <div class="about-feature-icon">!</div>
-                  <div><strong>Attribution required</strong> — keep the copyright notice in all copies.</div>
-                </div>
-              </div>
             </div>
           </section>
 
