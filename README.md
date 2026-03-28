@@ -6,7 +6,7 @@
 
 Live site: https://viveknaskar.github.io/json-kit/
 
-Free, open-source JSON tools that run entirely in your browser. No sign-up, no server uploads — your data never leaves your device.
+Free, open-source JSON tools that run entirely in your browser. No sign-up, no server uploads, your data never leaves your device.
 
 Built with vanilla JavaScript and [Vite](https://vitejs.dev/).
 
@@ -48,7 +48,7 @@ Built with vanilla JavaScript and [Vite](https://vitejs.dev/).
 
 ## Features
 
-- **100% client-side:** all processing happens in the browser — no backend, no cloud
+- **100% client-side:** all processing happens in the browser, no backend, no cloud
 - **No data uploads:** JSON is parsed and transformed entirely in your browser tab
 - **Works offline:** once loaded, every tool works without an internet connection
 - **No sign-up, no limits, no watermarks**
