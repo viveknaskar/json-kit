@@ -34,6 +34,7 @@ import { init as initJsonToMarkdownTable } from './tools/JsonToMarkdownTable.js'
 import { init as initBase64Json       } from './tools/Base64Json.js'
 import { init as initRemoveNulls      } from './tools/RemoveNulls.js'
 import { init as initPickOmitKeys     } from './tools/PickOmitKeys.js'
+import { init as initMockJson         } from './tools/MockJson.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // Boot the SPA shell
@@ -62,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initBase64Json()
   initRemoveNulls()
   initPickOmitKeys()
+  initMockJson()
 
   // Restore view from URL hash (e.g. direct link to a tool)
   app.restoreFromHash()

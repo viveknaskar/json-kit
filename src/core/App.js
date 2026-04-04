@@ -28,6 +28,7 @@ const tools = [
   { id: 'base64-json',    name: 'Base64 Encode/Decode',desc: 'Encode text or JSON to Base64, or decode it back',        icon: '64', accent: '#d97706', category: 'transform' },
   { id: 'remove-nulls',   name: 'Remove Nulls',        desc: 'Strip null values, empty strings, and empty collections', icon: '∅', accent: '#dc2626', category: 'transform' },
   { id: 'pick-omit',      name: 'Pick / Omit Keys',    desc: 'Extract or remove specific key paths from a JSON object', icon: '⋯', accent: '#0d9488', category: 'transform' },
+  { id: 'mock-json',      name: 'Mock Generator',      desc: 'Generate realistic fake JSON data from a JSON Schema',    icon: '⚄', accent: '#7c3aed', category: 'transform' },
 ]
 
 export default class App {
@@ -196,6 +197,7 @@ export default class App {
       ${this.base64JsonViewHTML()}
       ${this.removeNullsViewHTML()}
       ${this.pickOmitKeysViewHTML()}
+      ${this.mockJsonViewHTML()}
     `
   }
 
@@ -1142,6 +1144,50 @@ export default class App {
               <div id="po-output" class="output-area empty">Result will appear here…</div>
             </div>
             <div class="status-message" id="po-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  mockJsonViewHTML() {
+    const t = tools.find(x => x.id === 'mock-json')
+    return `
+      <div id="view-mock-json" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">JSON Schema</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="mg-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="mg-schema" class="code-area" placeholder='{"type":"object","required":["id","name","email"],"properties":{"id":{"type":"integer"},"name":{"type":"string"},"email":{"type":"string","format":"email"},"active":{"type":"boolean"}}}' spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="mg-btn">Generate</button>
+              <button class="btn btn-secondary" id="mg-regen">Regenerate</button>
+              <label style="margin-left:auto;display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-muted);">
+                Count
+                <input id="mg-count" type="number" min="1" max="50" value="3" class="inline-input" style="width:4rem;" />
+              </label>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Generated Mock Data</span>
+              <div class="pane-actions">
+                <button class="btn btn-secondary btn-sm" id="mg-copy">Copy</button>
+                <button class="btn btn-secondary btn-sm" id="mg-download">Download</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <div id="mg-output" class="output-area empty">Mock data will appear here…</div>
+            </div>
+            <div class="status-message" id="mg-status"></div>
           </div>
         </div>
       </div>
