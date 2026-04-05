@@ -36,6 +36,7 @@ import { init as initBase64Json       } from './tools/Base64Json.js'
 import { init as initRemoveNulls      } from './tools/RemoveNulls.js'
 import { init as initPickOmitKeys     } from './tools/PickOmitKeys.js'
 import { init as initMockJson         } from './tools/MockJson.js'
+import { init as initJwtDecode        } from './tools/JwtDecode.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // Boot the SPA shell
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initRemoveNulls()
   initPickOmitKeys()
   initMockJson()
+  initJwtDecode()
 
   // Restore view from URL hash (e.g. direct link to a tool)
   app.restoreFromHash()

@@ -53,7 +53,8 @@ Built with vanilla JavaScript and [Vite](https://vitejs.dev/).
 - **No data uploads:** JSON is parsed and transformed entirely in your browser tab
 - **Works offline:** once loaded, every tool works without an internet connection
 - **No sign-up, no limits, no watermarks**
-- **22 tools** covering formatting, conversion, diffing, querying, and more
+- **24 tools** covering formatting, conversion, diffing, querying, and more
+- **Dark / light mode** toggle with OS preference detection and sound feedback
 
 ---
 
@@ -109,6 +110,8 @@ No data is ever sent over the network. There is no backend, no database, and no 
 | **Base64 Encode/Decode** | Encode text or JSON to Base64, or decode it back. |
 | **Remove Nulls** | Strip null values, empty strings, and empty collections from JSON. |
 | **Pick / Omit Keys** | Extract or remove specific dot-notation key paths from a JSON object. |
+| **Mock Generator** | Generate realistic fake JSON data from a JSON Schema. Supports formats, enums, nested objects, and semantic field-name hints. |
+| **JWT Decoder** | Decode JWT headers, payloads, and claims. Shows expiry status, time remaining, and human-readable timestamps for iat/exp/nbf. |
 
 ---
 

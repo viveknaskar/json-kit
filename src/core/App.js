@@ -29,6 +29,7 @@ const tools = [
   { id: 'remove-nulls',   name: 'Remove Nulls',        desc: 'Strip null values, empty strings, and empty collections', icon: '∅', accent: '#dc2626', category: 'transform' },
   { id: 'pick-omit',      name: 'Pick / Omit Keys',    desc: 'Extract or remove specific key paths from a JSON object', icon: '⋯', accent: '#0d9488', category: 'transform' },
   { id: 'mock-json',      name: 'Mock Generator',      desc: 'Generate realistic fake JSON data from a JSON Schema',    icon: '⚄', accent: '#7c3aed', category: 'transform' },
+  { id: 'jwt-decode',     name: 'JWT Decoder',         desc: 'Decode and inspect JWT headers, payloads, claims, and expiry', icon: '⊡', accent: '#0284c7', category: 'transform' },
 ]
 
 export default class App {
@@ -199,6 +200,7 @@ export default class App {
       ${this.removeNullsViewHTML()}
       ${this.pickOmitKeysViewHTML()}
       ${this.mockJsonViewHTML()}
+      ${this.jwtDecodeViewHTML()}
     `
   }
 
@@ -1189,6 +1191,41 @@ export default class App {
               <div id="mg-output" class="output-area empty">Mock data will appear here…</div>
             </div>
             <div class="status-message" id="mg-status"></div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  jwtDecodeViewHTML() {
+    const t = tools.find(x => x.id === 'jwt-decode')
+    return `
+      <div id="view-jwt-decode" class="tool-view" role="main">
+        ${this.toolHeaderHTML(t)}
+        <div class="editor-layout">
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">JWT Token</span>
+              <div class="pane-actions">
+                <button class="btn btn-ghost btn-sm" id="jd-clear">Clear</button>
+              </div>
+            </div>
+            <div class="editor-pane-body">
+              <textarea id="jd-input" class="code-area" placeholder="Paste a JWT token here…&#10;&#10;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFsaWNlIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c" spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="action-bar">
+              <button class="btn btn-primary" id="jd-btn">Decode</button>
+            </div>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-pane-header">
+              <span class="pane-label">Decoded</span>
+            </div>
+            <div class="editor-pane-body">
+              <div id="jd-output" class="output-area empty">Paste a JWT token to decode it.</div>
+            </div>
+            <div class="status-message" id="jd-status"></div>
           </div>
         </div>
       </div>
