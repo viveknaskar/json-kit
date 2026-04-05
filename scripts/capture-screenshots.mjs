@@ -36,7 +36,8 @@ const tools = [
 if (!existsSync(OUT)) await mkdir(OUT, { recursive: true })
 
 const browser = await chromium.launch()
-const page    = await browser.newPage()
+const context = await browser.newContext({ colorScheme: 'dark' })
+const page    = await context.newPage()
 await page.setViewportSize({ width: 1280, height: 800 })
 
 // Load the app once
@@ -68,5 +69,6 @@ await page.waitForTimeout(500)
 await page.screenshot({ path: 'public/og-image.png', fullPage: false })
 console.log('✓ public/og-image.png')
 
+await context.close()
 await browser.close()
 console.log('\nDone.')
