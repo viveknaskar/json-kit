@@ -1,5 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#0a0a0b"/>
-  <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="'DM Sans', Arial, sans-serif" font-weight="700" font-size="10" fill="#ff6b4a">json</text>
-  <text x="50%" y="76%" dominant-baseline="middle" text-anchor="middle" font-family="'DM Sans', Arial, sans-serif" font-weight="700" font-size="11" fill="#e8e8ec">kit</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1c1c1f"/>
+      <stop offset="100%" stop-color="#0a0a0b"/>
+    </linearGradient>
+    <linearGradient id="brace" x1="0" y1="6" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ff8a70"/>
+      <stop offset="100%" stop-color="#ff6b4a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+
+  <!-- Subtle inner border -->
+  <rect x=".5" y=".5" width="31" height="31" rx="6.5" fill="none"
+        stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+
+  <!-- Top accent line -->
+  <rect x="9" y="2.5" width="14" height="1.5" rx=".75" fill="#ff6b4a" opacity=".7"/>
+
+  <!-- Left curly brace { -->
+  <path d="
+    M 13.5 6
+    Q 10.5 6  10.5 8.5
+    L 10.5 13
+    Q 10.5 16  8 16
+    Q 10.5 16  10.5 19
+    L 10.5 23.5
+    Q 10.5 26  13.5 26
+  " fill="none" stroke="url(#brace)" stroke-width="2.2"
+    stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Right curly brace } -->
+  <path d="
+    M 18.5 6
+    Q 21.5 6  21.5 8.5
+    L 21.5 13
+    Q 21.5 16  24 16
+    Q 21.5 16  21.5 19
+    L 21.5 23.5
+    Q 21.5 26  18.5 26
+  " fill="none" stroke="url(#brace)" stroke-width="2.2"
+    stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Center dot — represents the JSON value -->
+  <circle cx="16" cy="16" r="1.75" fill="#e8e8ec" opacity=".9"/>
 </svg>
