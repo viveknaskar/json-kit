@@ -10,8 +10,6 @@ Live site: https://viveknaskar.github.io/json-kit/
 
 Free, open-source JSON tools that run entirely in your browser. No sign-up, no server uploads, your data never leaves your device.
 
-Built with vanilla JavaScript and [Vite](https://vitejs.dev/).
-
 ---
 
 ## Screenshots
