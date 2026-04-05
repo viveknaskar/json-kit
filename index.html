@@ -23,6 +23,15 @@
   <link rel="icon" type="image/svg+xml" href="/json-kit/favicon.svg" />
   <link rel="apple-touch-icon" href="/json-kit/favicon.svg" />
 
+  <!-- Theme: apply before render to avoid flash -->
+  <script>
+    try {
+      var _t = localStorage.getItem('json-kit-theme') ||
+               (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', _t);
+    } catch(e) {}
+  </script>
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -62,6 +62,7 @@ export default class App {
             <a class="nav-link" data-nav="home" data-section="transform" href="#">Analyze &amp; Transform</a>
             <a class="nav-link" data-nav="home" data-section="about" href="#">About</a>
           </nav>
+          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
         </div>
       </header>
     `

@@ -41,6 +41,40 @@
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
 }
 
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  --bg: #f7f7f9;
+  --bg-primary: #f7f7f9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f2f2f6;
+  --bg-secondary: #f0f0f4;
+  --bg-tertiary: #e8e8ee;
+  --border: #dcdce4;
+  --border-hover: #c4c4cf;
+  --text: #111113;
+  --text-primary: #111113;
+  --text-muted: #5c5c70;
+  --text-secondary: #5c5c70;
+  --text-dim: #9090a4;
+  --accent: #e05030;
+  --accent-hover: #c84020;
+  --accent-soft: #c84020;
+  --accent-glow: rgba(224, 80, 48, 0.12);
+  --success: #16a34a;
+  --green: #16a34a;
+  --error: #dc2626;
+  --warning: #b45309;
+  --blue: #2563eb;
+  --purple: #7c3aed;
+  --yellow: #b45309;
+  --pink: #be185d;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.15);
+}
+
+[data-theme="light"] body::before { opacity: 0.015; }
+
 /* ===== RESET ===== */
 *, *::before, *::after {
   box-sizing: border-box;

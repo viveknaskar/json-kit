@@ -24,6 +24,10 @@
   align-items: center;
 }
 
+[data-theme="light"] .site-header {
+  background: rgba(247, 247, 249, 0.88);
+}
+
 .header-inner {
   max-width: 1200px;
   margin: 0 auto;

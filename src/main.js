@@ -10,6 +10,7 @@ import './styles/tools.css'
 
 // App shell
 import App from './core/App.js'
+import { initTheme } from './core/Theme.js'
 
 // Tool modules
 import { init as initFormatJson    } from './tools/FormatJson.js'
@@ -39,6 +40,7 @@ import { init as initMockJson         } from './tools/MockJson.js'
 document.addEventListener('DOMContentLoaded', () => {
   // Boot the SPA shell
   const app = new App(document.getElementById('app'))
+  initTheme()
 
   // Initialize all tools (wire up event listeners)
   initFormatJson()
