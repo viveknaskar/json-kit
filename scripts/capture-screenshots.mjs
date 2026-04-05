@@ -24,6 +24,13 @@ const tools = [
   { hash: 'flatten-json',  file: 'flatten'     },
   { hash: 'unflatten-json',file: 'unflatten'   },
   { hash: 'json-query',    file: 'query'       },
+  { hash: 'json-to-ts',    file: 'json-to-ts'  },
+  { hash: 'json-to-table', file: 'json-to-table'},
+  { hash: 'base64-json',   file: 'base64'      },
+  { hash: 'remove-nulls',  file: 'remove-nulls'},
+  { hash: 'pick-omit',     file: 'pick-omit'   },
+  { hash: 'mock-json',     file: 'mock-json'   },
+  { hash: 'jwt-decode',    file: 'jwt-decode'  },
 ]
 
 if (!existsSync(OUT)) await mkdir(OUT, { recursive: true })
