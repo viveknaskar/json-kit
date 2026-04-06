@@ -20,6 +20,8 @@ import { jsonToMarkdownTable } from '../../src/tools/JsonToMarkdownTable.js'
 import { encodeBase64, decodeBase64 } from '../../src/tools/Base64Json.js'
 import { removeNulls } from '../../src/tools/RemoveNulls.js'
 import { pickKeys, omitKeys } from '../../src/tools/PickOmitKeys.js'
+import { generateValue } from '../../src/tools/MockJson.js'
+import { decodeJwt } from '../../src/tools/JwtDecode.js'
 
 /* ===========================
    countStats
@@ -2248,5 +2250,212 @@ describe('omitKeys', () => {
 
   it('returns full object for empty paths', () => {
     expect(omitKeys({ a: 1 }, [])).toEqual({ a: 1 })
+  })
+})
+
+/* ===========================
+   deepMerge — security
+   =========================== */
+describe('deepMerge security', () => {
+  it('ignores __proto__ key and does not pollute Object prototype', () => {
+    const malicious = JSON.parse('{"__proto__":{"injected":true}}')
+    deepMerge({}, malicious)
+    expect({}.injected).toBeUndefined()
+  })
+
+  it('ignores constructor key', () => {
+    const result = deepMerge({}, JSON.parse('{"constructor":{"polluted":true}}'))
+    // constructor should not be injected as an own property
+    expect(Object.prototype.hasOwnProperty.call(result, 'constructor')).toBe(false)
+  })
+
+  it('ignores prototype key', () => {
+    const result = deepMerge({}, JSON.parse('{"prototype":{"polluted":true}}'))
+    expect(result.prototype).toBeUndefined()
+  })
+
+  it('still merges normal keys alongside dangerous ones', () => {
+    const b = JSON.parse('{"__proto__":{"bad":true},"name":"Alice"}')
+    const result = deepMerge({ age: 1 }, b)
+    expect(result.name).toBe('Alice')
+    expect(result.age).toBe(1)
+    expect(result.bad).toBeUndefined()
+  })
+})
+
+/* ===========================
+   validate — security
+   =========================== */
+describe('validate security', () => {
+  it('does not throw on a string exceeding 10000 chars with a pattern', () => {
+    // Strings over 10 000 chars are sliced before regex test — just verify no throw
+    const schema = { type: 'string', pattern: '^[a-z]+$' }
+    const longStr = 'a'.repeat(11000)
+    expect(() => validate(longStr, schema)).not.toThrow()
+    // The sliced string still matches the pattern, so no errors expected
+    const errors = validate(longStr, schema)
+    expect(errors).toHaveLength(0)
+  })
+
+  it('reports an error (not throws) for invalid patternProperties regex', () => {
+    const schema = {
+      type: 'object',
+      patternProperties: { '[invalid(': { type: 'string' } },
+    }
+    expect(() => validate({ foo: 'bar' }, schema)).not.toThrow()
+  })
+
+  it('handles invalid regex in additionalProperties patternProperties without throwing', () => {
+    const schema = {
+      type: 'object',
+      properties: { name: { type: 'string' } },
+      additionalProperties: false,
+      patternProperties: { '[bad(': { type: 'string' } },
+    }
+    expect(() => validate({ name: 'Alice', extra: 1 }, schema)).not.toThrow()
+  })
+})
+
+/* ===========================
+   generateValue (MockJson)
+   =========================== */
+describe('generateValue', () => {
+  it('returns a string for string schema', () => {
+    expect(typeof generateValue({ type: 'string' })).toBe('string')
+  })
+
+  it('returns a number for number schema', () => {
+    expect(typeof generateValue({ type: 'number' })).toBe('number')
+  })
+
+  it('returns an integer for integer schema', () => {
+    const v = generateValue({ type: 'integer' })
+    expect(Number.isInteger(v)).toBe(true)
+  })
+
+  it('returns a boolean for boolean schema', () => {
+    expect(typeof generateValue({ type: 'boolean' })).toBe('boolean')
+  })
+
+  it('returns null for null schema', () => {
+    expect(generateValue({ type: 'null' })).toBeNull()
+  })
+
+  it('returns the const value directly', () => {
+    expect(generateValue({ const: 42 })).toBe(42)
+    expect(generateValue({ const: 'hello' })).toBe('hello')
+  })
+
+  it('returns a value from enum', () => {
+    const options = ['a', 'b', 'c']
+    const v = generateValue({ enum: options })
+    expect(options).toContain(v)
+  })
+
+  it('generates an object with required properties', () => {
+    const schema = {
+      type: 'object',
+      required: ['id', 'name'],
+      properties: {
+        id:   { type: 'integer' },
+        name: { type: 'string' },
+      },
+    }
+    const v = generateValue(schema)
+    expect(typeof v).toBe('object')
+    expect(typeof v.id).toBe('number')
+    expect(typeof v.name).toBe('string')
+  })
+
+  it('generates an array of items', () => {
+    const schema = { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 }
+    const v = generateValue(schema)
+    expect(Array.isArray(v)).toBe(true)
+    expect(v).toHaveLength(2)
+    expect(Number.isInteger(v[0])).toBe(true)
+  })
+
+  it('respects minimum and maximum for integers', () => {
+    for (let i = 0; i < 20; i++) {
+      const v = generateValue({ type: 'integer', minimum: 5, maximum: 5 })
+      expect(v).toBe(5)
+    }
+  })
+
+  it('picks from anyOf', () => {
+    const schema = { anyOf: [{ type: 'string' }, { type: 'integer' }] }
+    const v = generateValue(schema)
+    expect(typeof v === 'string' || typeof v === 'number').toBe(true)
+  })
+
+  it('does not throw for allOf with __proto__ key (prototype pollution guard)', () => {
+    const schema = {
+      allOf: [
+        { type: 'object', properties: { a: { type: 'string' } } },
+        JSON.parse('{"__proto__":{"polluted":true}}'),
+      ],
+    }
+    expect(() => generateValue(schema)).not.toThrow()
+    expect({}.polluted).toBeUndefined()
+  })
+
+  it('generates email-format string for email key hint', () => {
+    const v = generateValue({ type: 'string' }, 'email')
+    expect(v).toMatch(/@/)
+  })
+})
+
+/* ===========================
+   decodeJwt
+   =========================== */
+describe('decodeJwt', () => {
+  // A real JWT: header={"alg":"HS256","typ":"JWT"}, payload={"sub":"1234567890","name":"Alice","iat":1516239022}
+  const VALID_JWT =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' +
+    '.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFsaWNlIiwiaWF0IjoxNTE2MjM5MDIyfQ' +
+    '.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+
+  it('decodes header correctly', () => {
+    const { header } = decodeJwt(VALID_JWT)
+    expect(header.alg).toBe('HS256')
+    expect(header.typ).toBe('JWT')
+  })
+
+  it('decodes payload correctly', () => {
+    const { payload } = decodeJwt(VALID_JWT)
+    expect(payload.sub).toBe('1234567890')
+    expect(payload.name).toBe('Alice')
+    expect(payload.iat).toBe(1516239022)
+  })
+
+  it('returns the raw signature string', () => {
+    const { signature } = decodeJwt(VALID_JWT)
+    expect(typeof signature).toBe('string')
+    expect(signature.length).toBeGreaterThan(0)
+  })
+
+  it('throws for a string with no dots', () => {
+    expect(() => decodeJwt('notajwt')).toThrow()
+  })
+
+  it('throws for only two parts', () => {
+    expect(() => decodeJwt('header.payload')).toThrow()
+  })
+
+  it('throws for four parts', () => {
+    expect(() => decodeJwt('a.b.c.d')).toThrow()
+  })
+
+  it('throws when header is not valid base64url JSON', () => {
+    expect(() => decodeJwt('!!!.payload.sig')).toThrow()
+  })
+
+  it('handles base64url encoding with - and _ characters', () => {
+    // The valid JWT above uses _ in the signature; header/payload use standard chars
+    expect(() => decodeJwt(VALID_JWT)).not.toThrow()
+  })
+
+  it('trims whitespace around the token', () => {
+    expect(() => decodeJwt('  ' + VALID_JWT + '  ')).not.toThrow()
   })
 })

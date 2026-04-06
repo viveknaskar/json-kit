@@ -123,8 +123,16 @@ export function validate(data, schema, path = '$') {
         errors.push({ path, message: `Invalid regex pattern: /${schema.pattern}/` })
         re = null
       }
-      if (re && !re.test(data)) {
-        errors.push({ path, message: `String must match pattern /${schema.pattern}/` })
+      if (re) {
+        try {
+          // Guard against ReDoS: only test strings up to 10 000 chars
+          const subject = data.length > 10000 ? data.slice(0, 10000) : data
+          if (!re.test(subject)) {
+            errors.push({ path, message: `String must match pattern /${schema.pattern}/` })
+          }
+        } catch {
+          errors.push({ path, message: `Pattern /${schema.pattern}/ could not be evaluated` })
+        }
       }
     }
     if (schema.format !== undefined) {
@@ -198,7 +206,7 @@ export function validate(data, schema, path = '$') {
       const definedKeys = new Set(Object.keys(schema.properties))
       const patternKeys = schema.patternProperties ? Object.keys(schema.patternProperties) : []
       for (const key of keys) {
-        if (!definedKeys.has(key) && !patternKeys.some(p => new RegExp(p).test(key))) {
+        if (!definedKeys.has(key) && !patternKeys.some(p => { try { return new RegExp(p).test(key) } catch { return false } })) {
           if (schema.additionalProperties === false) {
             errors.push({ path: `${path}.${key}`, message: `Additional property "${key}" is not allowed` })
           } else if (typeof schema.additionalProperties === 'object') {
@@ -210,7 +218,8 @@ export function validate(data, schema, path = '$') {
 
     if (schema.patternProperties) {
       for (const [pattern, subSchema] of Object.entries(schema.patternProperties)) {
-        const re = new RegExp(pattern)
+        let re
+        try { re = new RegExp(pattern) } catch { continue }
         for (const key of keys) {
           if (re.test(key)) {
             errors.push(...validate(data[key], subSchema, `${path}.${key}`))

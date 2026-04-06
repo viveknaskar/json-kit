@@ -86,15 +86,17 @@ export function init() {
  */
 export function deepMerge(a, b, arrayMode = 'replace') {
   if (isPlainObject(a) && isPlainObject(b)) {
-    const result = Object.assign({}, a)
+    const result = Object.create(null)
+    for (const key of Object.keys(a)) result[key] = a[key]
     for (const key of Object.keys(b)) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue
       if (key in result) {
         result[key] = deepMerge(result[key], b[key], arrayMode)
       } else {
         result[key] = b[key]
       }
     }
-    return result
+    return Object.assign({}, result)
   }
 
   if (Array.isArray(a) && Array.isArray(b)) {

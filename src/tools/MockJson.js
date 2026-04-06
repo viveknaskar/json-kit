@@ -93,7 +93,14 @@ export function generateValue(schema, key = '') {
   if (schema.oneOf) return generateValue(pick(schema.oneOf), key)
 
   if (schema.allOf) {
-    const merged = Object.assign({}, ...schema.allOf)
+    const safe = schema.allOf.filter(s => s && typeof s === 'object' && !Array.isArray(s))
+    const merged = {}
+    for (const s of safe) {
+      for (const k of Object.keys(s)) {
+        if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue
+        merged[k] = s[k]
+      }
+    }
     return generateValue(merged, key)
   }
 
