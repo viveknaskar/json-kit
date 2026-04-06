@@ -79,7 +79,7 @@ export default class App {
         <!-- Hero -->
         <section class="hero">
           <h1 class="hero-title">Free JSON tools,<br><em>no server needed</em></h1>
-          <p class="hero-tagline">Format, convert, diff, query and merge JSON right in your browser. No uploads to servers. No sign-up. 22 tools and counting.</p>
+          <p class="hero-tagline">Format, convert, diff, query and merge JSON right in your browser. No uploads to servers. No sign-up. ${tools.length} tools and counting.</p>
           <div class="hero-badges">
             <span>Zero uploads</span>
             <span>Runs locally</span>
