@@ -1257,7 +1257,6 @@ export default class App {
         <div class="footer-inner">
           <span class="footer-copy">© ${new Date().getFullYear()} JSON Kit — free &amp; open source</span>
           <div class="footer-links">
-            <a class="footer-link" href="https://github.com/viveknaskar/json-kit" target="_blank" rel="noopener">GitHub</a>
             <a class="footer-link footer-star" href="https://github.com/viveknaskar/json-kit" target="_blank" rel="noopener">★ Star on GitHub</a>
             <a class="footer-link footer-sponsor" href="https://github.com/sponsors/viveknaskar" target="_blank" rel="noopener">♥ Sponsor</a>
             <a class="footer-link footer-coffee" href="https://buymeacoffee.com/viveknaskar" target="_blank" rel="noopener">☕ Buy me a coffee</a>
